@@ -1,6 +1,10 @@
 package com.example.tech_a_breath.service
 
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -8,87 +12,116 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.example.tech_a_breath.R
+import com.example.tech_a_breath.ai.AudioClassifierManager
+import com.example.tech_a_breath.ai.TriggerType
+import kotlin.concurrent.thread
 
 class MonitoringService : Service() {
 
+    private val CHANNEL_ID = "TechABreathServiceChannel"
+    private var isRunning = false
     private var audioRecord: AudioRecord? = null
-    private var isRecording = false
+    private lateinit var classifierManager: AudioClassifierManager
 
     override fun onCreate() {
         super.onCreate()
-        startForeground(1, createNotification())
-        startAudioStream()
+        classifierManager = AudioClassifierManager(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        createNotificationChannel()
+        val notification = createNotification()
+        startForeground(1, notification)
+
+        if (!isRunning) {
+            isRunning = true
+            startMonitoring()
+        }
+
         return START_STICKY
+    }
+
+    private fun startMonitoring() {
+        thread {
+            val sampleRate = 16000 // YAMNet expects exactly 16kHz
+            val channelConfig = AudioFormat.CHANNEL_IN_MONO
+            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+            val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+
+            try {
+                audioRecord = AudioRecord(
+                    MediaRecorder.AudioSource.MIC,
+                    sampleRate,
+                    channelConfig,
+                    audioFormat,
+                    bufferSize
+                )
+
+                // Initialize TensorFlow Lite Audio Buffer
+                val tensorAudio = classifierManager.createInputTensorAudio()
+
+                if (audioRecord?.state == AudioRecord.STATE_INITIALIZED && tensorAudio != null) {
+                    audioRecord?.startRecording()
+                    println("Tech-a-Breath: AI Audio Monitoring Started")
+
+                    while (isRunning) {
+                        // Load latest audio data from microphone into TFLite tensor buffer
+                        tensorAudio.load(audioRecord)
+
+                        // Run AI Inference
+                        val result = classifierManager.classify(tensorAudio)
+
+                        if (result.triggerType != TriggerType.UNKNOWN) {
+                            println("Tech-a-Breath TRIGGER DETECTED: ${result.triggerType} with confidence ${result.confidence}")
+                            // Here we will trigger the intervention in the next step!
+                        } else {
+                            // Print fallback just to see the app is alive in Logcat
+                            println("Tech-a-Breath: Listening... No trigger found.")
+                        }
+
+                        // YAMNet analyzes windows of 0.975 seconds. We sleep slightly to give the buffer time to fill.
+                        Thread.sleep(500)
+                    }
+                }
+            } catch (e: SecurityException) {
+                println("Tech-a-Breath Error: Microphone permission missing")
+                e.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        isRunning = false
+        audioRecord?.stop()
+        audioRecord?.release()
+        audioRecord = null
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun createNotification(): Notification {
-
-        val channelId = "monitoring_channel"
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Monitoring Service",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
-        }
-
-        return NotificationCompat.Builder(this, channelId)
+        return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Shield Active")
             .setContentText("Listening to environment...")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(android.R.drawable.ic_lock_lock) // Temporary built-in system icon
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
             .build()
     }
 
-    private fun startAudioStream() {
-
-        val sampleRate = 16000
-        val bufferSize = AudioRecord.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT
-        )
-
-        audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC,
-            sampleRate,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-            bufferSize
-        )
-
-        val buffer = ShortArray(bufferSize)
-        isRecording = true
-
-        audioRecord?.startRecording()
-
-        Thread {
-            while (isRecording) {
-                val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
-
-                if (read > 0) {
-                    val amplitude = buffer.take(read).map { it * it }.average()
-
-                    // זה רגע קריטי - פה נכניס AI בהמשך
-                    println("Audio level: $amplitude")
-                }
-            }
-        }.start()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        isRecording = false
-        audioRecord?.stop()
-        audioRecord?.release()
-        audioRecord = null
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val serviceChannel = NotificationChannel(
+                CHANNEL_ID,
+                "Tech-a-Breath Monitoring Channel",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            // Correct way to get the NotificationManager in Kotlin
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(serviceChannel)
+        }
     }
 }
