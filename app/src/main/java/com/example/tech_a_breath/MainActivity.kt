@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.example.tech_a_breath.data.db.DatabaseProvider
 import com.example.tech_a_breath.service.MonitoringService
+import com.example.tech_a_breath.ui.dashboard.DashboardRoot
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,7 +33,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        checkPermissionsAndStart()
+        if (!isEmulator()) checkPermissionsAndStart()
 
         setContent {
             TechABreathTheme {
@@ -39,7 +41,16 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    var showDashboard by remember { mutableStateOf(false) }
+
+                    if (showDashboard) {
+                        val repository = remember {
+                            DatabaseProvider.getRepository(applicationContext)
+                        }
+                        DashboardRoot(repository = repository)
+                    } else {
+                        MainScreen(onOpenDashboard = { showDashboard = true })
+                    }
                 }
             }
         }
@@ -57,6 +68,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun isEmulator(): Boolean =
+        android.os.Build.FINGERPRINT.startsWith("generic") ||
+        android.os.Build.FINGERPRINT.startsWith("unknown") ||
+        android.os.Build.MODEL.contains("Emulator") ||
+        android.os.Build.MODEL.contains("Android SDK") ||
+        android.os.Build.HARDWARE.contains("goldfish") ||
+        android.os.Build.HARDWARE.contains("ranchu")
+
     private fun startMonitoringService() {
         val intent = Intent(this, MonitoringService::class.java)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -68,27 +87,27 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(onOpenDashboard: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
         Text(
             text = "Tech-a-Breath",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Acoustic Shield is Active",
             style = MaterialTheme.typography.bodyLarge
         )
-        Spacer(modifier = Modifier.height(32.dp))
         CircularProgressIndicator()
-        Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Listening for triggers...")
+        Button(onClick = onOpenDashboard) {
+            Text(text = "Open Dashboard")
+        }
     }
 }
