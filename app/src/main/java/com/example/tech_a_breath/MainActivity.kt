@@ -16,8 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.tech_a_breath.service.MonitoringService
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
+import com.example.tech_a_breath.ui.TriggerProtectionSettingsScreen
 
 class MainActivity : ComponentActivity() {
+
+    private var isServiceStarted = false
 
     // Launcher for the permission request
     private val requestPermissionLauncher = registerForActivityResult(
@@ -30,16 +33,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        checkPermissionsAndStart()
 
         setContent {
             TechABreathTheme {
+                var currentScreen by remember { mutableStateOf("settings") }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    if (currentScreen == "settings") {
+                        TriggerProtectionSettingsScreen(onStartProtection = {
+                            currentScreen = "monitoring"
+                            checkPermissionsAndStart()
+                        })
+                    } else {
+                        MainScreen()
+                    }
                 }
             }
         }
@@ -58,12 +68,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startMonitoringService() {
+        if (isServiceStarted) return
         val intent = Intent(this, MonitoringService::class.java)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             startForegroundService(intent)
         } else {
             startService(intent)
         }
+        isServiceStarted = true
     }
 }
 
