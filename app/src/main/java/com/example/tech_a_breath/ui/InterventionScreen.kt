@@ -28,8 +28,7 @@ import com.example.tech_a_breath.ui.theme.TechABreathTheme
 import kotlin.math.sin
 
 sealed class InterventionMode {
-    object Masking80 : InterventionMode()
-    object Masking100 : InterventionMode()
+    data class Masking(val level: Float, val label: String) : InterventionMode()
     object Breathing : InterventionMode()
     object PhoneCall : InterventionMode()
     object MusicActive : InterventionMode()
@@ -93,17 +92,26 @@ fun InterventionContent(mode: InterventionMode) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        val (primaryText, secondaryText) = when (mode) {
-            InterventionMode.Masking80 -> 
-                stringResource(R.string.motorcycle_detected) to stringResource(R.string.masking_80)
-            InterventionMode.Masking100 -> 
-                stringResource(R.string.siren_detected) to stringResource(R.string.full_masking)
-            InterventionMode.Breathing -> 
-                stringResource(R.string.breathe_together) to stringResource(R.string.inhale_exhale)
-            InterventionMode.PhoneCall -> 
-                stringResource(R.string.silent_support) to stringResource(R.string.no_voice_during_call)
-            InterventionMode.MusicActive -> 
-                stringResource(R.string.minimal_intervention) to stringResource(R.string.music_not_stopped)
+        val primaryText: String
+        val secondaryText: String
+
+        when (mode) {
+            is InterventionMode.Masking -> {
+                primaryText = "${mode.label} noise detected"
+                secondaryText = "Masking ${(mode.level * 100).toInt()}% active"
+            }
+            InterventionMode.Breathing -> {
+                primaryText = stringResource(R.string.breathe_together)
+                secondaryText = stringResource(R.string.inhale_exhale)
+            }
+            InterventionMode.PhoneCall -> {
+                primaryText = stringResource(R.string.silent_support)
+                secondaryText = stringResource(R.string.no_voice_during_call)
+            }
+            InterventionMode.MusicActive -> {
+                primaryText = stringResource(R.string.minimal_intervention)
+                secondaryText = stringResource(R.string.music_not_stopped)
+            }
         }
 
         Text(
@@ -172,9 +180,9 @@ fun CalmingWaveAnimation(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun Masking80Preview() {
+fun MaskingPreview() {
     TechABreathTheme {
-        InterventionScreen(mode = InterventionMode.Masking80, onStop = {})
+        InterventionScreen(mode = InterventionMode.Masking(0.8f, "Motorcycle"), onStop = {})
     }
 }
 
