@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Tech-a-Breath</string>
+
+    <!-- Intervention Screen Strings -->
+    <string name="intervention_title">Intervention Screen</string>
+    <string name="motorcycle_detected">Motorcycle noise detected</string>
+    <string name="masking_80">Masking 80% active</string>
+    <string name="siren_detected">Siren detected in background</string>
+    <string name="full_masking">Full masking active</string>
+    <string name="breathe_together">Let\'s breathe together</string>
+    <string name="inhale_exhale">Slow inhale · Long exhale</string>
+    <string name="silent_support">Silent support</string>
+    <string name="no_voice_during_call">No voice guidance during call</string>
+    <string name="minimal_intervention">Minimal intervention</string>
+    <string name="music_not_stopped">Music was not stopped</string>
+    <string name="stop_action">Stop</string>
 </resources>
