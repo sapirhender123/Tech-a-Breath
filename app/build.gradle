@@ -58,16 +58,17 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.activity:activity-compose:1.7.2'
 
-    // Jetpack Compose UI - גרסאות מודרניות ויציבות
+    // Jetpack Compose UI
     implementation "androidx.compose.ui:ui:1.4.3"
     implementation "androidx.compose.ui:ui-graphics:1.4.3"
     implementation "androidx.compose.ui:ui-tooling-preview:1.4.3"
     implementation "androidx.compose.material3:material3:1.1.1"
+    implementation "androidx.compose.material:material-icons-extended:1.4.3"
 
-    // Material Components הכללי של גוגל
+    // Material Components
     implementation 'com.google.android.material:material:1.9.0'
 
-    // TensorFlow Lite - הגרסה המושלמת לניהול ה-AI בגרדל החדש
+    // TensorFlow Lite
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
     implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
     implementation 'org.tensorflow:tensorflow-lite-task-audio:0.4.4'
