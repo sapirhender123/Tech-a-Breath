@@ -10,12 +10,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.tech_a_breath.service.MonitoringService
+import com.example.tech_a_breath.ui.InterventionMode
+import com.example.tech_a_breath.ui.InterventionScreen
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
+import com.example.tech_a_breath.TriggerManager
 
 class MainActivity : ComponentActivity() {
 
@@ -35,11 +39,20 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TechABreathTheme {
+                val activeIntervention by TriggerManager.activeIntervention.collectAsState()
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    if (activeIntervention != null) {
+                        InterventionScreen(
+                            mode = activeIntervention!!,
+                            onStop = { TriggerManager.stopIntervention() }
+                        )
+                    } else {
+                        MainScreen()
+                    }
                 }
             }
         }
@@ -90,5 +103,20 @@ fun MainScreen() {
         CircularProgressIndicator()
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Listening for triggers...")
+
+        Spacer(modifier = Modifier.height(48.dp))
+        
+        Text(text = "Debug: Test Intervention UI", style = MaterialTheme.typography.labelLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(onClick = { TriggerManager.onTriggerDetected(com.example.tech_a_breath.ai.TriggerType.SIREN) }) {
+                Text("Siren")
+            }
+            Button(onClick = { TriggerManager.onTriggerDetected(com.example.tech_a_breath.ai.TriggerType.MOTORCYCLE) }) {
+                Text("Motorcycle")
+            }
+        }
     }
 }

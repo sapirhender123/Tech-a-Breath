@@ -14,6 +14,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.tech_a_breath.ai.AudioClassifierManager
 import com.example.tech_a_breath.ai.TriggerType
+import com.example.tech_a_breath.TriggerManager
 import kotlin.concurrent.thread
 
 class MonitoringService : Service() {
@@ -73,7 +74,8 @@ class MonitoringService : Service() {
 
                         if (result.triggerType != TriggerType.UNKNOWN) {
                             println("Tech-a-Breath TRIGGER DETECTED: ${result.triggerType} with confidence ${result.confidence}")
-                            // Here we will trigger the intervention in the next step!
+                            // Trigger the intervention UI
+                            TriggerManager.onTriggerDetected(result.triggerType)
                         } else {
                             // Print fallback just to see the app is alive in Logcat
                             println("Tech-a-Breath: Listening... No trigger found.")
