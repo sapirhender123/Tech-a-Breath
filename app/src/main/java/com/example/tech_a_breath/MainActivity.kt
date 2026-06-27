@@ -111,20 +111,5 @@ fun MainScreen() {
         CircularProgressIndicator()
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Listening for triggers...")
-
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        Text(text = "Debug: Test Intervention UI", style = MaterialTheme.typography.labelLarge)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(onClick = { TriggerManager.onTriggerDetected(com.example.tech_a_breath.ai.TriggerType.SIREN) }) {
-                Text("Siren")
-            }
-            Button(onClick = { TriggerManager.onTriggerDetected(com.example.tech_a_breath.ai.TriggerType.MOTORCYCLE) }) {
-                Text("Motorcycle")
-            }
-        }
     }
 }
