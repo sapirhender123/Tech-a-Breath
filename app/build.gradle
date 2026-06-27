@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
 }
 
 android {
@@ -35,6 +36,7 @@ android {
     }
     buildFeatures {
         compose true
+        mlModelBinding true
     }
     composeOptions {
         kotlinCompilerExtensionVersion '1.4.6'
@@ -56,18 +58,41 @@ dependencies {
     // Android Core & Lifecycle
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.1'
     implementation 'androidx.activity:activity-compose:1.7.2'
 
-    // Jetpack Compose UI - גרסאות מודרניות ויציבות
+    // Jetpack Compose UI
     implementation "androidx.compose.ui:ui:1.4.3"
     implementation "androidx.compose.ui:ui-graphics:1.4.3"
     implementation "androidx.compose.ui:ui-tooling-preview:1.4.3"
     implementation "androidx.compose.material3:material3:1.1.1"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.4.3"
 
-    // Material Components הכללי של גוגל
+    // Navigation
+    implementation 'androidx.navigation:navigation-compose:2.6.0'
+
+    // Material Components
     implementation 'com.google.android.material:material:1.9.0'
 
-    // TensorFlow Lite - הגרסה המושלמת לניהול ה-AI בגרדל החדש
+    // Material Icons Extended
+    implementation "androidx.compose.material:material-icons-extended:1.4.3"
+
+    // Room
+    implementation "androidx.room:room-runtime:2.5.2"
+    implementation "androidx.room:room-ktx:2.5.2"
+    ksp "androidx.room:room-compiler:2.5.2"
+
+    // SQLite (needed by SQLCipher)
+    implementation "androidx.sqlite:sqlite-ktx:2.3.1"
+
+    // SQLCipher
+    implementation "net.zetetic:android-database-sqlcipher:4.5.4"
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
+
+    // TensorFlow Lite
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
     implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
     implementation 'org.tensorflow:tensorflow-lite-task-audio:0.4.4'
