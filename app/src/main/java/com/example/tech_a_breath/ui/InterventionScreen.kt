@@ -20,12 +20,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.tech_a_breath.R
+import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 import com.example.tech_a_breath.ui.theme.CalmingWave
 import com.example.tech_a_breath.ui.theme.DeepBackground
 import com.example.tech_a_breath.ui.theme.SoftText
 import com.example.tech_a_breath.ui.theme.StopButton
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
-import kotlin.math.sin
 
 sealed class InterventionMode {
     data class Masking(val level: Float, val label: String) : InterventionMode()
@@ -130,50 +130,6 @@ fun InterventionContent(mode: InterventionMode) {
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun CalmingWaveAnimation(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val phase by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2f * Math.PI.toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )
-
-    Canvas(modifier = modifier) {
-        val width = size.width
-        val height = size.height
-        val centerY = height / 2
-
-        val path = Path()
-        path.moveTo(0f, centerY)
-
-        for (x in 0..width.toInt() step 5) {
-            val relativeX = x.toFloat() / width
-            val sineValue = sin(relativeX * 2 * Math.PI + phase)
-            val y = centerY + (sineValue * 40).toFloat()
-            path.lineTo(x.toFloat(), y)
-        }
-
-        path.lineTo(width, height)
-        path.lineTo(0f, height)
-        path.close()
-
-        drawPath(
-            path = path,
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    CalmingWave.copy(alpha = 0.3f),
-                    Color.Transparent
-                )
-            ),
-            style = Fill
         )
     }
 }
