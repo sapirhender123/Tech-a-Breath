@@ -24,49 +24,61 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
     val triggers = TriggerManager.settings
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 24.dp)
+                    .padding(horizontal = 24.dp, vertical = 32.dp)
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Trigger Protection Settings",
+                    text = "Your Acoustic Shield",
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        fontWeight = FontWeight.Light,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Configure how the app should respond when specific triggers are detected.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Select which sounds you'd like me to soften for you today.",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 24.sp
                     )
                 )
             }
         },
         bottomBar = {
-            Button(
-                onClick = onStartProtection,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp)
+            Surface(
+                tonalElevation = 2.dp,
+                shadowElevation = 8.dp
             ) {
-                Text("Start Protection", style = MaterialTheme.typography.titleMedium)
+                Button(
+                    onClick = onStartProtection,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .height(64.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(Icons.Default.Shield, contentDescription = null)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Activate Protection", style = MaterialTheme.typography.titleMedium)
+                }
             }
         }
     ) { innerPadding ->
         LazyColumn(
             contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
+                start = 24.dp,
+                end = 24.dp,
                 top = innerPadding.calculateTopPadding(),
-                bottom = 16.dp
+                bottom = 100.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             items(triggers) { trigger ->
@@ -83,72 +95,84 @@ fun TriggerCard(trigger: TriggerSettingData) {
     var isEnabled by remember { mutableStateOf(trigger.isEnabled) }
     
     val icon = when(trigger.type) {
-        TriggerType.SIREN -> Icons.Default.Warning
-        TriggerType.DOG_BARK -> Icons.Default.Info
-        TriggerType.MOTORCYCLE -> Icons.Default.Notifications
-        else -> Icons.Default.Notifications
+        TriggerType.SIREN -> Icons.Default.Campaign
+        TriggerType.DOG_BARK -> Icons.Default.Pets
+        TriggerType.MOTORCYCLE -> Icons.Default.TwoWheeler
+        TriggerType.FIREWORK -> Icons.Default.Celebration
+        else -> Icons.Default.VolumeUp
     }
 
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isEnabled) 
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
             else 
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isEnabled) 2.dp else 0.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(24.dp)
         ) {
-            // Header: Icon + Name + Toggle
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = trigger.name,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 20.sp,
-                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
+                Surface(
+                    color = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = trigger.name,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            color = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.outline
+                        )
+                    )
+                }
                 Switch(
                     checked = isEnabled,
                     onCheckedChange = { 
                         isEnabled = it
                         TriggerManager.updateSetting(trigger.type, maskingLevel, it)
-                    }
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 )
             }
 
             if (isEnabled) {
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Masking Level
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Masking Level",
+                        text = "Protection Strength",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
                     Text(
-                        text = "${(maskingLevel * 100).toInt()}%",
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        text = if (maskingLevel > 0.7f) "Maximum" else if (maskingLevel > 0.3f) "Balanced" else "Gentle",
+                        style = MaterialTheme.typography.labelLarge.copy(
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
@@ -161,21 +185,27 @@ fun TriggerCard(trigger: TriggerSettingData) {
                         maskingLevel = it
                         TriggerManager.updateSetting(trigger.type, it, isEnabled)
                     },
-                    modifier = Modifier.padding(vertical = 4.dp),
+                    modifier = Modifier.padding(vertical = 8.dp),
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
                         activeTrackColor = MaterialTheme.colorScheme.primary,
-                        inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant
+                        inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                     )
                 )
 
                 Text(
-                    text = "Higher masking blocks more of the detected trigger. Lower masking allows gradual exposure.",
+                    text = if (maskingLevel > 0.7f) 
+                        "Strongly softens this sound to keep your environment quiet." 
+                    else if (maskingLevel > 0.3f)
+                        "Moderately reduces the sound intensity."
+                    else 
+                        "Allows you to hear the sound while keeping it non-startling.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                     lineHeight = 16.sp
                 )
             }
         }
     }
 }
+

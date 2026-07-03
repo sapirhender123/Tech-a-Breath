@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.example.tech_a_breath.service.MonitoringService
 import com.example.tech_a_breath.ui.InterventionMode
 import com.example.tech_a_breath.ui.InterventionScreen
+import com.example.tech_a_breath.ui.ListeningScreen
 import com.example.tech_a_breath.ui.TriggerProtectionSettingsScreen
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
 
@@ -57,7 +58,9 @@ class MainActivity : ComponentActivity() {
                             checkPermissionsAndStart()
                         })
                     } else {
-                        MainScreen()
+                        ListeningScreen(onOpenSettings = {
+                            currentScreen = "settings"
+                        })
                     }
                 }
             }
@@ -85,31 +88,5 @@ class MainActivity : ComponentActivity() {
             startService(intent)
         }
         isServiceStarted = true
-    }
-}
-
-@Composable
-fun MainScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Tech-a-Breath",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Acoustic Shield is Active",
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        CircularProgressIndicator()
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Listening for triggers...")
     }
 }
