@@ -15,8 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.tech_a_breath.service.MonitoringService
 import com.example.tech_a_breath.ui.InterventionMode
+import kotlinx.coroutines.launch
 import com.example.tech_a_breath.ui.InterventionScreen
 import com.example.tech_a_breath.ui.ListeningScreen
 import com.example.tech_a_breath.ui.TriggerProtectionSettingsScreen
@@ -37,6 +39,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // TODO: REMOVE THIS - ONLY FOR INITIALIZING DB SO IT SHOWS IN INSPECTOR
+        lifecycleScope.launch {
+            (application as TechABreathApplication).database.triggerDao().getAllTriggers()
+        }
 
         setContent {
             TechABreathTheme {
