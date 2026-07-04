@@ -82,30 +82,35 @@ class MonitoringService : Service() {
                         
                         if (readCount > 0) {
                             val dbLevel = calculateDb(shortBuffer, readCount)
-                            tensorAudio.load(shortBuffer, 0, readCount)
-
-                            if (dbLevel > volumeThresholdDb) {
-                                val result = classifierManager.classify(tensorAudio)
-
-                                if (result.triggerType != TriggerType.UNKNOWN) {
-                                    detectionHistory.add(result.triggerType)
-                                    if (detectionHistory.size > HISTORY_SIZE) detectionHistory.removeAt(0)
-
-                                    val consistentTrigger = getConsistentTrigger()
-                                    if (consistentTrigger != lastActiveTrigger) {
-                                        if (consistentTrigger != TriggerType.UNKNOWN) {
-                                            println("🚨🚨 [Tech-a-Breath System] TRIGGER CONFIRMED: $consistentTrigger")
-                                            TriggerManager.onTriggerDetected(consistentTrigger)
-                                        } else if (lastActiveTrigger != TriggerType.UNKNOWN) {
-                                            println("✅ [Tech-a-Breath System] Environment cleared.")
-                                        }
-                                        lastActiveTrigger = consistentTrigger
-                                    }
-                                }
+                            
+                            // 1. Determine current trigger type
+                            val currentTrigger = if (dbLevel > volumeThresholdDb) {
+                                tensorAudio.load(shortBuffer, 0, readCount)
+                                classifierManager.classify(tensorAudio).triggerType
                             } else {
-                                if (System.currentTimeMillis() % 10000 < 200) {
-                                    println("Tech-a-Breath: Monitoring ambient (${String.format(Locale.US, "%.1f", dbLevel)} dB)")
+                                TriggerType.UNKNOWN
+                            }
+
+                            // 2. Always update history (even if it's silence/unknown)
+                            detectionHistory.add(currentTrigger)
+                            if (detectionHistory.size > HISTORY_SIZE) detectionHistory.removeAt(0)
+
+                            // 3. Check for consistent state changes
+                            val consistentTrigger = getConsistentTrigger()
+                            if (consistentTrigger != lastActiveTrigger) {
+                                if (consistentTrigger != TriggerType.UNKNOWN) {
+                                    println("🚨🚨 [Tech-a-Breath System] TRIGGER CONFIRMED: $consistentTrigger")
+                                    TriggerManager.onTriggerDetected(consistentTrigger)
+                                } else if (lastActiveTrigger != TriggerType.UNKNOWN) {
+                                    println("✅ [Tech-a-Breath System] Environment cleared.")
+                                    TriggerManager.stopIntervention()
                                 }
+                                lastActiveTrigger = consistentTrigger
+                            }
+
+                            // Optional logging for ambient levels
+                            if (dbLevel <= volumeThresholdDb && System.currentTimeMillis() % 10000 < 200) {
+                                println("Tech-a-Breath: Monitoring ambient (${String.format(Locale.US, "%.1f", dbLevel)} dB)")
                             }
                         }
                         Thread.sleep(100)

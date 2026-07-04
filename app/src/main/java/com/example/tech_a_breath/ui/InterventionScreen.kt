@@ -28,7 +28,7 @@ import com.example.tech_a_breath.ui.theme.StopButton
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
 
 sealed class InterventionMode {
-    data class Masking(val level: Float, val label: String) : InterventionMode()
+    data class Masking(val level: Float, val triggerName: String, val maskingMethod: String) : InterventionMode()
     object Breathing : InterventionMode()
     object PhoneCall : InterventionMode()
     object MusicActive : InterventionMode()
@@ -97,8 +97,8 @@ fun InterventionContent(mode: InterventionMode) {
 
         when (mode) {
             is InterventionMode.Masking -> {
-                primaryText = "${mode.label} noise detected"
-                secondaryText = "Masking ${(mode.level * 100).toInt()}% active"
+                primaryText = "Trigger ${mode.triggerName} detected"
+                secondaryText = "Activating ${mode.maskingMethod} (${(mode.level * 100).toInt()}% masking)"
             }
             InterventionMode.Breathing -> {
                 primaryText = stringResource(R.string.breathe_together)
@@ -138,7 +138,7 @@ fun InterventionContent(mode: InterventionMode) {
 @Composable
 fun MaskingPreview() {
     TechABreathTheme {
-        InterventionScreen(mode = InterventionMode.Masking(0.8f, "Motorcycle"), onStop = {})
+        InterventionScreen(mode = InterventionMode.Masking(0.8f, "Motorcycle", "White Noise"), onStop = {})
     }
 }
 
