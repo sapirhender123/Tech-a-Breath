@@ -40,11 +40,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO: REMOVE THIS - ONLY FOR INITIALIZING DB SO IT SHOWS IN INSPECTOR
-        lifecycleScope.launch {
-            (application as TechABreathApplication).database.triggerDao().getAllTriggers()
-        }
-
         setContent {
             TechABreathTheme {
                 var currentScreen by remember { mutableStateOf("settings") }

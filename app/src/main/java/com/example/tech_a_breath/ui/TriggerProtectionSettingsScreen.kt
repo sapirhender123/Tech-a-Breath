@@ -21,7 +21,8 @@ import com.example.tech_a_breath.ai.TriggerType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
-    val triggers = TriggerManager.settings
+    // Collect the settings from the Manager
+    val triggers = remember { TriggerManager.settings }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -81,7 +82,7 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(triggers) { trigger ->
+            items(triggers, key = { it.triggerId }) { trigger ->
                 TriggerCard(trigger)
             }
         }
@@ -91,8 +92,10 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TriggerCard(trigger: TriggerSettingData) {
-    var maskingLevel by remember { mutableStateOf(trigger.maskingLevel) }
-    var isEnabled by remember { mutableStateOf(trigger.isEnabled) }
+    // We use derived values or local state that updates when the trigger object changes
+    var maskingLevel by remember(trigger.triggerId) { mutableStateOf(trigger.maskingLevel) }
+    var isEnabled by remember(trigger.triggerId) { mutableStateOf(trigger.isEnabled) }
+    var responseType by remember(trigger.triggerId) { mutableStateOf(trigger.responseType) }
     
     val icon = when(trigger.type) {
         TriggerType.SIREN -> Icons.Default.Campaign
@@ -148,7 +151,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     checked = isEnabled,
                     onCheckedChange = { 
                         isEnabled = it
-                        TriggerManager.updateSetting(trigger.type, maskingLevel, it)
+                        TriggerManager.updateSetting(trigger.triggerId, maskingLevel, it, responseType)
                     },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -159,31 +162,18 @@ fun TriggerCard(trigger: TriggerSettingData) {
 
             if (isEnabled) {
                 Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Protection Strength",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    )
-                    Text(
-                        text = if (maskingLevel > 0.7f) "Maximum" else if (maskingLevel > 0.3f) "Balanced" else "Gentle",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
+                
+                Text(
+                    text = "Protection Strength",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
 
                 Slider(
                     value = maskingLevel,
                     onValueChange = { 
                         maskingLevel = it
-                        TriggerManager.updateSetting(trigger.type, it, isEnabled)
+                        TriggerManager.updateSetting(trigger.triggerId, it, isEnabled, responseType)
                     },
                     modifier = Modifier.padding(vertical = 8.dp),
                     colors = SliderDefaults.colors(
@@ -193,17 +183,38 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     )
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+                
                 Text(
-                    text = if (maskingLevel > 0.7f) 
-                        "Strongly softens this sound to keep your environment quiet." 
-                    else if (maskingLevel > 0.3f)
-                        "Moderately reduces the sound intensity."
-                    else 
-                        "Allows you to hear the sound while keeping it non-startling.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                    lineHeight = 16.sp
+                    text = "Choose a masking sound",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
+                
+                val responseOptions = listOf(
+                    "white_noise" to "White Noise",
+                    "music" to "Music",
+                    "breathing" to "Breathing",
+                    "vibration" to "Vibration"
+                )
+                
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    responseOptions.forEach { (type, label) ->
+                        FilterChip(
+                            selected = responseType == type,
+                            onClick = { 
+                                responseType = type
+                                TriggerManager.updateSetting(trigger.triggerId, maskingLevel, isEnabled, type)
+                            },
+                            label = { Text(label) }
+                        )
+                    }
+                }
             }
         }
     }
