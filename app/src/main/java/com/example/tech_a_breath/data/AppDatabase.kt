@@ -58,7 +58,8 @@ abstract class AppDatabase : RoomDatabase() {
                 val triggers = listOf(
                     TriggerEntity(id = 1, modelLabel = "motorcycle"),
                     TriggerEntity(id = 2, modelLabel = "dog_bark"),
-                    TriggerEntity(id = 3, modelLabel = "siren")
+                    TriggerEntity(id = 3, modelLabel = "siren"),
+                    TriggerEntity(id = 4, modelLabel = "firework")
                 )
                 triggerDao.insertAll(triggers)
                 
