@@ -34,7 +34,7 @@ object TriggerManager {
     val settings = mutableStateListOf<TriggerSettingData>(
         TriggerSettingData(1, 0, TriggerType.MOTORCYCLE, "Motorcycle", isEnabled = false),
         TriggerSettingData(2, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
-        TriggerSettingData(3, 0, TriggerType.SIREN, "Air Raid Siren", isEnabled = false),
+        TriggerSettingData(3, 0, TriggerType.SIREN, "Ambulance Siren", isEnabled = false),
         TriggerSettingData(4, 0, TriggerType.FIREWORK, "Firework", isEnabled = false)
     )
 
@@ -93,7 +93,7 @@ object TriggerManager {
     }
 
     private fun mapLabelToDisplayName(label: String): String = when (label) {
-        "siren" -> "Air Raid Siren"
+        "siren" -> "Ambulance Siren"
         "dog_bark" -> "Dog Barking"
         "motorcycle" -> "Motorcycle"
         "firework" -> "Firework"
@@ -112,10 +112,10 @@ object TriggerManager {
         detectionStartTime = startTime
 
         val mode = when (setting.responseType) {
-            "white_noise" -> InterventionMode.Masking(setting.maskingLevel, "White Noise")
-            "music" -> InterventionMode.Masking(setting.maskingLevel, "Calming Music")
-            "breathing" -> InterventionMode.Masking(setting.maskingLevel, "Breathing Exercise")
-            else -> InterventionMode.Masking(setting.maskingLevel, setting.name)
+            "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise")
+            "music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music")
+            "breathing" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Breathing Exercise")
+            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, setting.name)
         }
         _activeIntervention.value = mode
 
