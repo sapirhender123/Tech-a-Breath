@@ -5,6 +5,7 @@ import com.example.tech_a_breath.ai.TriggerType
 import com.example.tech_a_breath.data.AppDatabase
 import com.example.tech_a_breath.data.TriggerConfigHistoryEntity
 import com.example.tech_a_breath.data.TriggerEntity
+import com.example.tech_a_breath.data.TriggerEventEntity
 import com.example.tech_a_breath.data.UserTriggerConfigEntity
 import com.example.tech_a_breath.ui.InterventionMode
 import kotlinx.coroutines.CoroutineScope
@@ -36,6 +37,9 @@ object TriggerManager {
         TriggerSettingData(2, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
         TriggerSettingData(3, 0, TriggerType.SIREN, "Air Raid Siren", isEnabled = false)
     )
+
+    private var currentEventId: Long? = null
+    private var detectionStartTime: Long = 0
 
     private var database: AppDatabase? = null
     private var scope: CoroutineScope? = null
@@ -104,6 +108,9 @@ object TriggerManager {
             return
         }
 
+        val startTime = System.currentTimeMillis()
+        detectionStartTime = startTime
+
         val mode = when (setting.responseType) {
             "white_noise" -> InterventionMode.Masking(setting.maskingLevel, "White Noise")
             "music" -> InterventionMode.Masking(setting.maskingLevel, "Calming Music")
@@ -111,10 +118,40 @@ object TriggerManager {
             else -> InterventionMode.Masking(setting.maskingLevel, setting.name)
         }
         _activeIntervention.value = mode
+
+        // Record Event Start
+        scope?.launch(Dispatchers.IO) {
+            val event = TriggerEventEntity(
+                triggerId = setting.triggerId,
+                detectedAt = startTime,
+                maskingPctApplied = (setting.maskingLevel * 100).toInt(),
+                responseTypeUsed = setting.responseType,
+                latencyMs = System.currentTimeMillis() - startTime, // Simplified latency
+                eventDurationMs = 0,
+                endedAt = null
+            )
+            currentEventId = database?.triggerEventDao()?.insert(event)
+        }
     }
 
     fun stopIntervention() {
+        val endTime = System.currentTimeMillis()
         _activeIntervention.value = null
+
+        // Record Event End
+        val eventId = currentEventId
+        if (eventId != null) {
+            scope?.launch(Dispatchers.IO) {
+                database?.triggerEventDao()?.getEventById(eventId)?.let { event ->
+                    val updatedEvent = event.copy(
+                        endedAt = endTime,
+                        eventDurationMs = endTime - event.detectedAt
+                    )
+                    database?.triggerEventDao()?.update(updatedEvent)
+                }
+                currentEventId = null
+            }
+        }
     }
 
     fun updateSetting(

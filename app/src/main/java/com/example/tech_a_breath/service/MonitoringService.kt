@@ -98,6 +98,7 @@ class MonitoringService : Service() {
                                             TriggerManager.onTriggerDetected(consistentTrigger)
                                         } else if (lastActiveTrigger != TriggerType.UNKNOWN) {
                                             println("✅ [Tech-a-Breath System] Environment cleared.")
+                                            TriggerManager.stopIntervention()
                                         }
                                         lastActiveTrigger = consistentTrigger
                                     }
