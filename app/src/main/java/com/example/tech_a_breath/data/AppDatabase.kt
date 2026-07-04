@@ -10,8 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [TriggerEntity::class, UserTriggerConfigEntity::class, TriggerConfigHistoryEntity::class, TriggerEventEntity::class],
-    version = 5,
+    entities = [
+        TriggerEntity::class,
+        UserTriggerConfigEntity::class,
+        TriggerConfigHistoryEntity::class,
+        TriggerEventEntity::class,
+        EventFeedbackEntity::class
+    ],
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -19,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userTriggerConfigDao(): UserTriggerConfigDao
     abstract fun triggerConfigHistoryDao(): TriggerConfigHistoryDao
     abstract fun triggerEventDao(): TriggerEventDao
+    abstract fun eventFeedbackDao(): EventFeedbackDao
 
     companion object {
         @Volatile

@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Instant
 
 data class TriggerSettingData(
     val triggerId: Int,
@@ -35,7 +34,8 @@ object TriggerManager {
     val settings = mutableStateListOf<TriggerSettingData>(
         TriggerSettingData(1, 0, TriggerType.MOTORCYCLE, "Motorcycle", isEnabled = false),
         TriggerSettingData(2, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
-        TriggerSettingData(3, 0, TriggerType.SIREN, "Air Raid Siren", isEnabled = false)
+        TriggerSettingData(3, 0, TriggerType.SIREN, "Air Raid Siren", isEnabled = false),
+        TriggerSettingData(4, 0, TriggerType.FIREWORK, "Firework", isEnabled = false)
     )
 
     private var currentEventId: Long? = null
@@ -173,7 +173,6 @@ object TriggerManager {
 
             // Save to DB
             scope?.launch(Dispatchers.IO) {
-                val timestamp = Instant.now().toString()
                 val configEntity = UserTriggerConfigEntity(
                     configId = updated.configId,
                     triggerId = updated.triggerId,
@@ -181,7 +180,7 @@ object TriggerManager {
                     sensitivityLevel = updated.sensitivityLevel,
                     maskingPercentage = (updated.maskingLevel * 100).toInt(),
                     responseType = updated.responseType,
-                    updatedAt = timestamp
+                    updatedAt = System.currentTimeMillis()
                 )
                 
                 // insertOrUpdate will handle adding the row if it doesn't exist
@@ -204,7 +203,8 @@ object TriggerManager {
                     sensitivityLevel = updated.sensitivityLevel,
                     maskingPercentage = (updated.maskingLevel * 100).toInt(),
                     responseType = updated.responseType,
-                    changedAt = timestamp
+                    changeSource = "user_manual",
+                    changedAt = System.currentTimeMillis()
                 )
                 database?.triggerConfigHistoryDao()?.insert(history)
             }

@@ -36,6 +36,9 @@ data class TriggerConfigHistoryEntity(
     @ColumnInfo(name = "response_type")
     val responseType: String,
 
+    @ColumnInfo(name = "change_source")
+    val changeSource: String, // "user_manual" or "app_nudge"
+
     @ColumnInfo(name = "changed_at")
-    val changedAt: String
+    val changedAt: Long // Unix Epoch time
 )
