@@ -3,33 +3,59 @@ package com.example.tech_a_breath.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tech_a_breath.HeadphoneManager
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 
 @Composable
 fun ListeningScreen(onOpenSettings: () -> Unit) {
+    val isHeadsetConnected by HeadphoneManager.isHeadsetConnected.collectAsState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp)
     ) {
-        IconButton(
-            onClick = onOpenSettings,
-            modifier = Modifier.align(Alignment.TopEnd)
+        Row(
+            modifier = Modifier.align(Alignment.TopEnd),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                imageVector = Icons.Default.Info,
+                contentDescription = "Headphones Status",
+                tint = if (isHeadsetConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error.copy(alpha = 0.6f),
+                modifier = Modifier.size(20.dp)
             )
+            
+            Text(
+                text = if (isHeadsetConnected) "Connected" else "No Headphones",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isHeadsetConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 4.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
+
+            IconButton(
+                onClick = onOpenSettings
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                )
+            }
         }
 
         Column(

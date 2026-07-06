@@ -12,5 +12,6 @@ class TechABreathApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         TriggerManager.init(database, applicationScope)
+        HeadphoneManager.init(this)
     }
 }
