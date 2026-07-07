@@ -4,6 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -58,6 +59,17 @@ fun InterventionScreen(
         }
     }
 
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -89,24 +101,39 @@ fun InterventionScreen(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
             ) {
                 if (isTimerActive) {
-                    Text(
-                        text = "Masking will end in ${timeLeftSeconds / 60}:${String.format("%02d", timeLeftSeconds % 60)}",
-                        color = CalmingWave,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                CalmingWave.copy(alpha = 0.1f),
+                                RoundedCornerShape(24.dp)
+                            )
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "Shielding active • Safe space",
+                            color = CalmingWave.copy(alpha = pulseAlpha),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
 
                 Text(
-                    text = "Keep masking for:",
+                    text = "Would you like to rest for a bit?",
                     color = SoftText.copy(alpha = 0.7f),
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelMedium
                 )
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    listOf(1, 3, 5).forEach { mins ->
+                    val options = listOf(
+                        1 to "Just a moment",
+                        3 to "Take a breath",
+                        5 to "Stay with me"
+                    )
+                    options.forEach { (mins, label) ->
                         OutlinedButton(
                             onClick = {
                                 timeLeftSeconds = mins * 60
@@ -114,47 +141,60 @@ fun InterventionScreen(
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = SoftText
+                                contentColor = SoftText,
+                                containerColor = if (timeLeftSeconds == mins * 60) CalmingWave.copy(alpha = 0.1f) else Color.Transparent
                             ),
                             border = ButtonDefaults.outlinedButtonBorder.copy(
-                                brush = Brush.linearGradient(listOf(CalmingWave, SoftText))
+                                brush = Brush.linearGradient(
+                                    if (timeLeftSeconds == mins * 60) 
+                                        listOf(CalmingWave, CalmingWave) 
+                                    else 
+                                        listOf(CalmingWave.copy(alpha = 0.4f), SoftText.copy(alpha = 0.2f))
+                                )
                             )
                         ) {
-                            Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("${mins}m")
+                            Text(
+                                text = label,
+                                fontSize = 11.sp,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 14.sp
+                            )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Large Stop Button - Redesigned to be more noticeable
-                Button(
-                    onClick = {
-                        timeLeftSeconds = 0
-                        TriggerManager.setManualLock(false)
-                        onStop()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(72.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = StopButton,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                // Friendly Circular Stop Button
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(28.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "STOP MASKING",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
+                    Button(
+                        onClick = {
+                            timeLeftSeconds = 0
+                            TriggerManager.setManualLock(false)
+                            onStop()
+                        },
+                        modifier = Modifier.size(150.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = StopButton,
+                            contentColor = Color.White
+                        ),
+                        shape = CircleShape,
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        Text(
+                            text = "I feel\nsafe now",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 22.sp
+                        )
+                    }
                 }
             }
         }
