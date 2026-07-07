@@ -19,13 +19,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Timer
 import com.example.tech_a_breath.R
+import com.example.tech_a_breath.TriggerManager
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 import com.example.tech_a_breath.ui.theme.CalmingWave
 import com.example.tech_a_breath.ui.theme.DeepBackground
 import com.example.tech_a_breath.ui.theme.SoftText
 import com.example.tech_a_breath.ui.theme.StopButton
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
+import kotlinx.coroutines.delay
 
 sealed class InterventionMode {
     data class Masking(val level: Float, val triggerName: String, val maskingMethod: String) : InterventionMode()
@@ -39,6 +44,20 @@ fun InterventionScreen(
     mode: InterventionMode,
     onStop: () -> Unit
 ) {
+    var timeLeftSeconds by remember { mutableStateOf(0) }
+    val isTimerActive = timeLeftSeconds > 0
+
+    // Timer logic
+    LaunchedEffect(timeLeftSeconds) {
+        if (timeLeftSeconds > 0) {
+            delay(1000L)
+            timeLeftSeconds -= 1
+            if (timeLeftSeconds == 0) {
+                onStop()
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -59,28 +78,84 @@ fun InterventionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Text Content based on mode
             InterventionContent(mode)
 
-            // Large Stop Button
-            Button(
-                onClick = onStop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = StopButton,
-                    contentColor = SoftText
-                ),
-                shape = RoundedCornerShape(16.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
             ) {
+                if (isTimerActive) {
+                    Text(
+                        text = "Masking will end in ${timeLeftSeconds / 60}:${String.format("%02d", timeLeftSeconds % 60)}",
+                        color = CalmingWave,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+
                 Text(
-                    text = stringResource(R.string.stop_action),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = "Keep masking for:",
+                    color = SoftText.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.labelLarge
                 )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    listOf(1, 3, 5).forEach { mins ->
+                        OutlinedButton(
+                            onClick = {
+                                timeLeftSeconds = mins * 60
+                                TriggerManager.setManualLock(true)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = SoftText
+                            ),
+                            border = ButtonDefaults.outlinedButtonBorder.copy(
+                                brush = Brush.linearGradient(listOf(CalmingWave, SoftText))
+                            )
+                        ) {
+                            Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("${mins}m")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Large Stop Button - Redesigned to be more noticeable
+                Button(
+                    onClick = {
+                        timeLeftSeconds = 0
+                        TriggerManager.setManualLock(false)
+                        onStop()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = StopButton,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                ) {
+                    Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(28.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "STOP MASKING",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
             }
         }
     }

@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                     if (activeIntervention != null) {
                         InterventionScreen(
                             mode = activeIntervention!!,
-                            onStop = { TriggerManager.stopIntervention() }
+                            onStop = { TriggerManager.stopIntervention(force = true) }
                         )
                     } else if (currentScreen == "settings") {
                         TriggerProtectionSettingsScreen(onStartProtection = {
