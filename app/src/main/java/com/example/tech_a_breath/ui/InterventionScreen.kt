@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Timer
 import com.example.tech_a_breath.R
@@ -187,13 +188,24 @@ fun InterventionScreen(
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
                         contentPadding = PaddingValues(16.dp)
                     ) {
-                        Text(
-                            text = "I feel\nsafe now",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 22.sp
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ExitToApp,
+                                contentDescription = null,
+                                modifier = Modifier.size(44.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "I feel\nsafe now",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 18.sp
+                            )
+                        }
                     }
                 }
             }
