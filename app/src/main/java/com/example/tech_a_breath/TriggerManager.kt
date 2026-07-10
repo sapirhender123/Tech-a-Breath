@@ -40,6 +40,7 @@ object TriggerManager {
 
     private var currentEventId: Long? = null
     private var detectionStartTime: Long = 0
+    private var isLockedManually: Boolean = false
 
     private var database: AppDatabase? = null
     private var scope: CoroutineScope? = null
@@ -108,6 +109,8 @@ object TriggerManager {
             return
         }
 
+        isLockedManually = false
+
         val startTime = System.currentTimeMillis()
         detectionStartTime = startTime
 
@@ -134,9 +137,12 @@ object TriggerManager {
         }
     }
 
-    fun stopIntervention() {
+    fun stopIntervention(force: Boolean = false) {
+        if (isLockedManually && !force) return
+        
         val endTime = System.currentTimeMillis()
         _activeIntervention.value = null
+        isLockedManually = false
 
         // Record Event End
         val eventId = currentEventId
@@ -152,6 +158,10 @@ object TriggerManager {
                 currentEventId = null
             }
         }
+    }
+
+    fun setManualLock(locked: Boolean) {
+        isLockedManually = locked
     }
 
     fun updateSetting(

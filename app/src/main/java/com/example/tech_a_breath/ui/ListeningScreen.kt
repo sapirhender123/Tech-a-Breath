@@ -97,6 +97,34 @@ fun ListeningScreen(onOpenSettings: () -> Unit) {
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Check if any triggers are active in the settings
+            val anyTriggerEnabled = com.example.tech_a_breath.TriggerManager.settings.any { it.isEnabled }
+
+            if (!anyTriggerEnabled) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Warning: No triggers selected. Please enable sounds you want to mask in the settings.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
         }
     }
 }
