@@ -126,7 +126,7 @@ class MainActivity : ComponentActivity() {
     private fun startMonitoringService() {
         if (isServiceStarted) return
         val intent = Intent(this, MonitoringService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             startForegroundService(intent)
         } else {
             startService(intent)

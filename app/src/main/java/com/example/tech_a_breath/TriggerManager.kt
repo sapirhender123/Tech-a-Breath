@@ -35,7 +35,7 @@ object TriggerManager {
     private val _isAppInForeground = MutableStateFlow(false)
     val isAppInForeground: StateFlow<Boolean> = _isAppInForeground.asStateFlow()
 
-    var isProtectionActivated = false 
+    var isProtectionActivated = false // Track if monitoring screen should be shown
 
     // Shared settings state
     val settings = mutableStateListOf<TriggerSettingData>(
