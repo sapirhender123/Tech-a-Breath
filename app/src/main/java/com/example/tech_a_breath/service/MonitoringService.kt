@@ -69,6 +69,7 @@ class MonitoringService : Service() {
         }
 
         createNotificationChannel()
+        // Initial notification to start foreground
         val notification = createNotification(false, false)
         startForeground(NOTIFICATION_ID, notification)
 
@@ -213,44 +214,78 @@ class MonitoringService : Service() {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val channelToUse = if (isInterventionActive && !silent) "InterventionChannel" else CHANNEL_ID
-        val builder = NotificationCompat.Builder(this, channelToUse).setSmallIcon(android.R.drawable.ic_lock_lock).setContentIntent(pendingIntent).setOngoing(true)
+        val builder = NotificationCompat.Builder(this, channelToUse)
+            .setSmallIcon(android.R.drawable.ic_lock_lock)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
 
         if (silent) {
-            builder.setPriority(NotificationCompat.PRIORITY_MIN).setContentTitle("Acoustic Shield Active").setContentText("Monitoring in background")
+            builder.setPriority(NotificationCompat.PRIORITY_MIN)
+                .setContentTitle("Acoustic Shield Active")
+                .setContentText("Monitoring in background")
         } else if (isInterventionActive) {
             val stopIntent = Intent(this, MonitoringService::class.java).apply { action = ACTION_STOP_MASKING }
-            val stopPI = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE)
+            val stopPendingIntent = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
             val ext1Intent = Intent(this, MonitoringService::class.java).apply { action = ACTION_EXTEND_1M }
-            val ext1PI = PendingIntent.getService(this, 2, ext1Intent, PendingIntent.FLAG_IMMUTABLE)
+            val ext1PI = PendingIntent.getService(this, 2, ext1Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            
             val ext3Intent = Intent(this, MonitoringService::class.java).apply { action = ACTION_EXTEND_3M }
-            val ext3PI = PendingIntent.getService(this, 3, ext3Intent, PendingIntent.FLAG_IMMUTABLE)
+            val ext3PI = PendingIntent.getService(this, 3, ext3Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
             val ext5Intent = Intent(this, MonitoringService::class.java).apply { action = ACTION_EXTEND_5M }
-            val ext5PI = PendingIntent.getService(this, 4, ext5Intent, PendingIntent.FLAG_IMMUTABLE)
+            val ext5PI = PendingIntent.getService(this, 4, ext5Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             builder.setContentTitle("Protection Active")
                 .setContentText("Acoustic Shield is currently masking a trigger.")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Safe Now", stopPI)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Safe Now", stopPendingIntent)
                 .addAction(android.R.drawable.ic_menu_recent_history, "Just a moment", ext1PI)
                 .addAction(android.R.drawable.ic_menu_recent_history, "Take a breath", ext3PI)
                 .addAction(android.R.drawable.ic_menu_recent_history, "Stay with me", ext5PI)
                 .setFullScreenIntent(pendingIntent, true)
         } else {
-            builder.setContentTitle("Shield Active").setContentText("Listening to environment...").setPriority(NotificationCompat.PRIORITY_LOW)
+            builder.setContentTitle("Shield Active")
+                .setContentText("Listening to environment...")
+                .setPriority(NotificationCompat.PRIORITY_LOW)
         }
+
         return builder.build()
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Tech-a-Breath Monitoring Channel", NotificationManager.IMPORTANCE_LOW))
-            manager.createNotificationChannel(NotificationChannel("InterventionChannel", "Shield Intervention", NotificationManager.IMPORTANCE_HIGH).apply {
+            
+            val serviceChannel = NotificationChannel(
+                CHANNEL_ID,
+                "Tech-a-Breath Monitoring Channel",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Shows when the app is listening for sounds"
+                setShowBadge(false)
+            }
+            manager.createNotificationChannel(serviceChannel)
+            
+            val interventionChannel = NotificationChannel(
+                "InterventionChannel",
+                "Shield Intervention",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Shows when masking is active"
                 enableVibration(false)
-            })
+                vibrationPattern = longArrayOf(0)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            }
+            manager.createNotificationChannel(interventionChannel)
         }
     }
 }
