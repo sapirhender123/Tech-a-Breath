@@ -63,9 +63,9 @@ class MonitoringService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP_MASKING -> TriggerManager.stopIntervention(force = true)
-            ACTION_EXTEND_1M -> TriggerManager.setManualLock(true, 1)
-            ACTION_EXTEND_3M -> TriggerManager.setManualLock(true, 3)
-            ACTION_EXTEND_5M -> TriggerManager.setManualLock(true, 5)
+            ACTION_EXTEND_1M -> TriggerManager.setManualLock(true, 10)
+            ACTION_EXTEND_3M -> TriggerManager.setManualLock(true, 30)
+            ACTION_EXTEND_5M -> TriggerManager.setManualLock(true, 60)
         }
 
         createNotificationChannel()

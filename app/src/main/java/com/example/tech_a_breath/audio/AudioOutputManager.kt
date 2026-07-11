@@ -64,7 +64,8 @@ object AudioOutputManager {
                             intervention.responseType
                         )
                     }
-                } else if (!connected && _isPlaying.value) {
+                } else if (_isPlaying.value) {
+                    // Stop if headphones disconnected OR intervention ended
                     stopPlayback()
                 }
             }
