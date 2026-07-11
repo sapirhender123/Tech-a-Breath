@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
         TriggerEventEntity::class,
         EventFeedbackEntity::class
     ],
-    version = 7,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -61,12 +61,11 @@ abstract class AppDatabase : RoomDatabase() {
             suspend fun populateDatabase(database: AppDatabase) {
                 val triggerDao = database.triggerDao()
 
-                // Insert Triggers (Fixed Reference)
+                // Insert Triggers (Only high accuracy core triggers)
                 val triggers = listOf(
-                    TriggerEntity(id = 1, modelLabel = "motorcycle"),
-                    TriggerEntity(id = 2, modelLabel = "dog_bark"),
-                    TriggerEntity(id = 3, modelLabel = "siren"),
-                    TriggerEntity(id = 4, modelLabel = "firework")
+                    TriggerEntity(id = 1, modelLabel = "dog_bark"),
+                    TriggerEntity(id = 2, modelLabel = "siren"),
+                    TriggerEntity(id = 3, modelLabel = "baby_crying")
                 )
                 triggerDao.insertAll(triggers)
                 

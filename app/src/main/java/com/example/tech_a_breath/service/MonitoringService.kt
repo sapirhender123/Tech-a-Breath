@@ -101,11 +101,13 @@ class MonitoringService : Service() {
                                 if (consistentTrigger != TriggerType.UNKNOWN) {
                                     println("🚨🚨 [Tech-a-Breath System] TRIGGER CONFIRMED: $consistentTrigger")
                                     TriggerManager.onTriggerDetected(consistentTrigger)
+                                    lastActiveTrigger = consistentTrigger
                                 } else if (lastActiveTrigger != TriggerType.UNKNOWN) {
-                                    println("✅ [Tech-a-Breath System] Environment cleared.")
-                                    TriggerManager.stopIntervention()
+                                    if (TriggerManager.stopIntervention()) {
+                                        println("✅ [Tech-a-Breath System] Environment cleared.")
+                                        lastActiveTrigger = consistentTrigger
+                                    }
                                 }
-                                lastActiveTrigger = consistentTrigger
                             }
 
                             // Optional logging for ambient levels

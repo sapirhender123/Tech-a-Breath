@@ -96,6 +96,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
     var maskingLevel by remember(trigger.triggerId) { mutableStateOf(trigger.maskingLevel) }
     var isEnabled by remember(trigger.triggerId) { mutableStateOf(trigger.isEnabled) }
     var responseType by remember(trigger.triggerId) { mutableStateOf(trigger.responseType) }
+    var minDuration by remember(trigger.triggerId) { mutableStateOf(trigger.minMaskingDuration.toFloat()) }
     
     val icon = when(trigger.type) {
         TriggerType.SIREN -> Icons.Default.Campaign
@@ -151,7 +152,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     checked = isEnabled,
                     onCheckedChange = { 
                         isEnabled = it
-                        TriggerManager.updateSetting(trigger.triggerId, maskingLevel, it, responseType)
+                        TriggerManager.updateSetting(trigger.triggerId, maskingLevel, it, responseType, minMaskingDuration = minDuration.toInt())
                     },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -163,18 +164,66 @@ fun TriggerCard(trigger: TriggerSettingData) {
             if (isEnabled) {
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                Text(
-                    text = "Protection Strength",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.GraphicEq,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Masking Volume",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                }
 
                 Slider(
                     value = maskingLevel,
                     onValueChange = { 
                         maskingLevel = it
-                        TriggerManager.updateSetting(trigger.triggerId, it, isEnabled, responseType)
+                        TriggerManager.updateSetting(trigger.triggerId, it, isEnabled, responseType, minMaskingDuration = minDuration.toInt())
                     },
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.SelfImprovement,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Min Masking Duration: ${minDuration.toInt()}s",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+
+                Slider(
+                    value = minDuration,
+                    onValueChange = { 
+                        minDuration = it
+                        TriggerManager.updateSetting(trigger.triggerId, maskingLevel, isEnabled, responseType, minMaskingDuration = it.toInt())
+                    },
+                    valueRange = 3f..60f,
+                    steps = 57,
                     modifier = Modifier.padding(vertical = 8.dp),
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
@@ -209,7 +258,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
                             selected = responseType == type,
                             onClick = { 
                                 responseType = type
-                                TriggerManager.updateSetting(trigger.triggerId, maskingLevel, isEnabled, type)
+                                TriggerManager.updateSetting(trigger.triggerId, maskingLevel, isEnabled, type, minMaskingDuration = minDuration.toInt())
                             },
                             label = { Text(label) }
                         )
@@ -219,4 +268,3 @@ fun TriggerCard(trigger: TriggerSettingData) {
         }
     }
 }
-

@@ -24,7 +24,8 @@ data class TriggerSettingData(
     var maskingLevel: Float = 0.5f,
     var isEnabled: Boolean = true,
     var responseType: String = "white_noise",
-    var sensitivityLevel: Int = 3
+    var sensitivityLevel: Int = 3,
+    var minMaskingDuration: Int = 3
 )
 
 object TriggerManager {
@@ -41,6 +42,7 @@ object TriggerManager {
 
     private var currentEventId: Long? = null
     private var detectionStartTime: Long = 0
+    private var activeMinDuration: Int = 0
     private var isLockedManually: Boolean = false
 
     private var database: AppDatabase? = null
@@ -71,7 +73,8 @@ object TriggerManager {
                             maskingLevel = (config?.maskingPercentage ?: 50).toFloat() / 100f,
                             isEnabled = config?.isActive ?: false,
                             responseType = config?.responseType ?: "white_noise",
-                            sensitivityLevel = config?.sensitivityLevel ?: 3
+                            sensitivityLevel = config?.sensitivityLevel ?: 3,
+                            minMaskingDuration = config?.minMaskingDuration ?: 3
                         )
                     }
 
@@ -114,6 +117,7 @@ object TriggerManager {
 
         val startTime = System.currentTimeMillis()
         detectionStartTime = startTime
+        activeMinDuration = setting.minMaskingDuration
 
         val mode = when (setting.responseType) {
             "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, setting.responseType)
@@ -145,12 +149,21 @@ object TriggerManager {
         }
     }
 
-    fun stopIntervention(force: Boolean = false) {
-        if (isLockedManually && !force) return
+    fun stopIntervention(force: Boolean = false): Boolean {
+        if (isLockedManually && !force) return false
+        
+        // Check minimum duration requirement
+        if (!force) {
+            val elapsedMs = System.currentTimeMillis() - detectionStartTime
+            if (elapsedMs < activeMinDuration * 1000) {
+                return false // Stay active until min duration is reached
+            }
+        }
         
         val endTime = System.currentTimeMillis()
         _activeIntervention.value = null
         isLockedManually = false
+        activeMinDuration = 0
 
         // Stop Audio Masking
         AudioOutputManager.stopPlayback()
@@ -169,6 +182,7 @@ object TriggerManager {
                 currentEventId = null
             }
         }
+        return true
     }
 
     fun setManualLock(locked: Boolean) {
@@ -180,7 +194,8 @@ object TriggerManager {
         maskingLevel: Float,
         isEnabled: Boolean,
         responseType: String = "white_noise",
-        sensitivityLevel: Int = 3
+        sensitivityLevel: Int = 3,
+        minMaskingDuration: Int = 3
     ) {
         val index = settings.indexOfFirst { it.triggerId == triggerId }
         if (index != -1) {
@@ -188,7 +203,8 @@ object TriggerManager {
                 maskingLevel = maskingLevel,
                 isEnabled = isEnabled,
                 responseType = responseType,
-                sensitivityLevel = sensitivityLevel
+                sensitivityLevel = sensitivityLevel,
+                minMaskingDuration = minMaskingDuration
             )
             settings[index] = updated
 
@@ -201,6 +217,7 @@ object TriggerManager {
                     sensitivityLevel = updated.sensitivityLevel,
                     maskingPercentage = (updated.maskingLevel * 100).toInt(),
                     responseType = updated.responseType,
+                    minMaskingDuration = updated.minMaskingDuration,
                     updatedAt = System.currentTimeMillis()
                 )
                 
@@ -224,6 +241,7 @@ object TriggerManager {
                     sensitivityLevel = updated.sensitivityLevel,
                     maskingPercentage = (updated.maskingLevel * 100).toInt(),
                     responseType = updated.responseType,
+                    minMaskingDuration = updated.minMaskingDuration,
                     changeSource = "user_manual",
                     changedAt = System.currentTimeMillis()
                 )

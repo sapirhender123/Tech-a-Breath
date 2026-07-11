@@ -37,6 +37,9 @@ data class UserTriggerConfigEntity(
     @ColumnInfo(name = "response_type", defaultValue = "white_noise")
     val responseType: String,
 
+    @ColumnInfo(name = "min_masking_duration", defaultValue = "3")
+    val minMaskingDuration: Int,
+
     @ColumnInfo(name = "updated_at")
     val updatedAt: Long
 )
