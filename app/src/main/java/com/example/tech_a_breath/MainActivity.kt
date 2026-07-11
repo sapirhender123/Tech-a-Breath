@@ -85,6 +85,11 @@ class MainActivity : ComponentActivity() {
                             onOpenSettings = {
                                 TriggerManager.isProtectionActivated = false
                                 currentScreen = "settings"
+                            },
+                            onStopShield = {
+                                stopMonitoringService()
+                                TriggerManager.isProtectionActivated = false
+                                currentScreen = "settings"
                             }
                         )
                     }
@@ -126,11 +131,17 @@ class MainActivity : ComponentActivity() {
     private fun startMonitoringService() {
         if (isServiceStarted) return
         val intent = Intent(this, MonitoringService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             startForegroundService(intent)
         } else {
             startService(intent)
         }
         isServiceStarted = true
+    }
+
+    private fun stopMonitoringService() {
+        val intent = Intent(this, MonitoringService::class.java)
+        stopService(intent)
+        isServiceStarted = false
     }
 }

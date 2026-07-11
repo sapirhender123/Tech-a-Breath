@@ -123,7 +123,7 @@ class MonitoringService : Service() {
 
                                 // Update history
                                 detectionHistory.add(detectedType)
-                                if (historySize() > HISTORY_SIZE) detectionHistory.removeAt(0)
+                                if (detectionHistory.size > HISTORY_SIZE) detectionHistory.removeAt(0)
 
                                 // 2. Determine if we have a stable detection
                                 val stableTrigger = getConsistentTrigger()
@@ -160,8 +160,6 @@ class MonitoringService : Service() {
             }
         }
     }
-
-    private fun historySize(): Int = detectionHistory.size
 
     private fun calculateDb(buffer: ShortArray, readCount: Int): Double {
         var sum = 0.0

@@ -83,6 +83,7 @@ object TriggerManager {
                             isEnabled = config?.isActive ?: false,
                             responseType = when(config?.responseType) {
                                 "music", "breathing", "calming_music" -> "calming_music"
+                                "brown_noise" -> "brown_noise"
                                 else -> "white_noise"
                             },
                             sensitivityLevel = config?.sensitivityLevel ?: 3,
@@ -133,6 +134,7 @@ object TriggerManager {
 
         val mode = when (setting.responseType) {
             "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, setting.responseType)
+            "brown_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Brown Noise", type, setting.responseType)
             "calming_music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
             else -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, "white_noise")
         }
