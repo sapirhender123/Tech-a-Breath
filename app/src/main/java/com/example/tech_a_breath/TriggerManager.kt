@@ -161,9 +161,11 @@ object TriggerManager {
 
     fun stopIntervention(force: Boolean = false): Boolean {
         val now = System.currentTimeMillis()
+        
+        // Handle manual locks (timer extensions)
         if (isLockedManually && !force && now < manualLockUntil) return false
         
-        // Check minimum duration requirement
+        // Check minimum duration requirement from settings
         if (!force) {
             val elapsedMs = now - detectionStartTime
             if (elapsedMs < activeMinDuration * 1000) {
