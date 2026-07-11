@@ -70,7 +70,12 @@ object TriggerManager {
                             name = mapLabelToDisplayName(trigger.modelLabel),
                             maskingLevel = (config?.maskingPercentage ?: 50).toFloat() / 100f,
                             isEnabled = config?.isActive ?: false,
-                            responseType = config?.responseType ?: "white_noise",
+                            responseType = when(config?.responseType) {
+                                "music" -> "calming_music"
+                                "breathing" -> "calming_music"
+                                "brown_noise" -> "brown_noise"
+                                else -> "white_noise"
+                            },
                             sensitivityLevel = config?.sensitivityLevel ?: 3
                         )
                     }
@@ -117,9 +122,9 @@ object TriggerManager {
 
         val mode = when (setting.responseType) {
             "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, setting.responseType)
-            "music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
-            "breathing" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Breathing Exercise", type, setting.responseType)
-            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, setting.name, type, setting.responseType)
+            "brown_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Brown Noise", type, setting.responseType)
+            "calming_music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
+            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, "white_noise")
         }
         _activeIntervention.value = mode
 

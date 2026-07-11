@@ -193,9 +193,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
                 
                 val responseOptions = listOf(
                     "white_noise" to "White Noise",
-                    "music" to "Music",
-                    "breathing" to "Breathing",
-                    "vibration" to "Vibration"
+                    "calming_music" to "Calming Music"
                 )
                 
                 Row(

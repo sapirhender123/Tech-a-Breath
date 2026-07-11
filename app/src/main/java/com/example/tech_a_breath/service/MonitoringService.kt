@@ -34,6 +34,10 @@ class MonitoringService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "STOP_MASKING") {
+            TriggerManager.stopIntervention(force = true)
+        }
+
         createNotificationChannel()
         val notification = createNotification()
         startForeground(1, notification)
@@ -166,12 +170,21 @@ class MonitoringService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun createNotification(): Notification {
+        val stopIntent = Intent(this, MonitoringService::class.java).apply {
+            action = "STOP_MASKING"
+        }
+        val stopPendingIntent = android.app.PendingIntent.getService(
+            this, 0, stopIntent,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) android.app.PendingIntent.FLAG_IMMUTABLE else 0
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Shield Active")
             .setContentText("Listening to environment...")
-            .setSmallIcon(android.R.drawable.ic_lock_lock) // Temporary built-in system icon
+            .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop Masking", stopPendingIntent)
             .build()
     }
 
