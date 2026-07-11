@@ -2,6 +2,7 @@ package com.example.tech_a_breath
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.tech_a_breath.ai.TriggerType
+import com.example.tech_a_breath.audio.AudioOutputManager
 import com.example.tech_a_breath.data.AppDatabase
 import com.example.tech_a_breath.data.TriggerConfigHistoryEntity
 import com.example.tech_a_breath.data.TriggerEntity
@@ -112,12 +113,19 @@ object TriggerManager {
         detectionStartTime = startTime
 
         val mode = when (setting.responseType) {
-            "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise")
-            "music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music")
-            "breathing" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Breathing Exercise")
-            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, setting.name)
+            "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, setting.responseType)
+            "music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
+            "breathing" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Breathing Exercise", type, setting.responseType)
+            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, setting.name, type, setting.responseType)
         }
         _activeIntervention.value = mode
+
+        // Trigger Audio Masking
+        AudioOutputManager.onTriggerDetected(
+            type, 
+            (setting.maskingLevel * 100).toInt(),
+            setting.responseType
+        )
 
         // Record Event Start
         scope?.launch(Dispatchers.IO) {
@@ -137,6 +145,9 @@ object TriggerManager {
     fun stopIntervention() {
         val endTime = System.currentTimeMillis()
         _activeIntervention.value = null
+
+        // Stop Audio Masking
+        AudioOutputManager.stopPlayback()
 
         // Record Event End
         val eventId = currentEventId

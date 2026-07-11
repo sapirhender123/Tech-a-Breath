@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.tech_a_breath.R
+import com.example.tech_a_breath.ai.TriggerType
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 import com.example.tech_a_breath.ui.theme.CalmingWave
 import com.example.tech_a_breath.ui.theme.DeepBackground
@@ -28,7 +29,13 @@ import com.example.tech_a_breath.ui.theme.StopButton
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
 
 sealed class InterventionMode {
-    data class Masking(val level: Float, val triggerName: String, val maskingMethod: String) : InterventionMode()
+    data class Masking(
+        val level: Float, 
+        val triggerName: String, 
+        val maskingMethod: String, 
+        val triggerType: TriggerType,
+        val responseType: String
+    ) : InterventionMode()
     object Breathing : InterventionMode()
     object PhoneCall : InterventionMode()
     object MusicActive : InterventionMode()
@@ -138,7 +145,16 @@ fun InterventionContent(mode: InterventionMode) {
 @Composable
 fun MaskingPreview() {
     TechABreathTheme {
-        InterventionScreen(mode = InterventionMode.Masking(0.8f, "Motorcycle", "White Noise"), onStop = {})
+        InterventionScreen(
+            mode = InterventionMode.Masking(
+                0.8f, 
+                "Motorcycle", 
+                "White Noise", 
+                TriggerType.MOTORCYCLE,
+                "white_noise"
+            ),
+            onStop = {}
+        )
     }
 }
 
