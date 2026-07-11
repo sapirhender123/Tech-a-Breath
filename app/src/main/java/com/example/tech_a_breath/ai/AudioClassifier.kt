@@ -40,7 +40,7 @@ class AudioClassifierManager(private val context: Context) {
         // We look for the strongest match among our specific PTSD triggers.
         for (classification in results) {
             for (category in classification.categories) {
-                val label = category.label.toLowerCase()
+                val label = category.label.lowercase()
                 val score = category.score
 
                 // Log detections above 15% for debugging, excluding broad/unwanted categories

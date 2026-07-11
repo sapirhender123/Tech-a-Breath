@@ -172,7 +172,7 @@ class MonitoringService : Service() {
 
     private fun updateNotificationState(isInterventionActive: Boolean, isForeground: Boolean) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+        
         val notification = createNotification(isInterventionActive, isForeground)
         notificationManager.notify(NOTIFICATION_ID, notification)
     }

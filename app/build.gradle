@@ -47,6 +47,9 @@ android {
         jniLibs {
             useLegacyPackaging = true
         }
+        dex {
+            useLegacyPackaging = true
+        }
     }
     aaptOptions {
         noCompress "tflite"
