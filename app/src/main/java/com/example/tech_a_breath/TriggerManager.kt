@@ -33,10 +33,9 @@ object TriggerManager {
 
     // Shared settings state
     val settings = mutableStateListOf<TriggerSettingData>(
-        TriggerSettingData(1, 0, TriggerType.MOTORCYCLE, "Motorcycle", isEnabled = false),
-        TriggerSettingData(2, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
-        TriggerSettingData(3, 0, TriggerType.SIREN, "Ambulance Siren", isEnabled = false),
-        TriggerSettingData(4, 0, TriggerType.FIREWORK, "Firework", isEnabled = false)
+        TriggerSettingData(1, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
+        TriggerSettingData(2, 0, TriggerType.SIREN, "Ambulance", isEnabled = false),
+        TriggerSettingData(3, 0, TriggerType.BABY_CRYING, "Baby Crying", isEnabled = false)
     )
 
     private var currentEventId: Long? = null
@@ -81,9 +80,9 @@ object TriggerManager {
                     }
 
                     scope?.launch(Dispatchers.Main) {
-                settings.clear()
-                settings.addAll(loadedSettings)
-            }
+                        settings.clear()
+                        settings.addAll(loadedSettings)
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -94,16 +93,14 @@ object TriggerManager {
     private fun mapLabelToType(label: String): TriggerType = when (label) {
         "siren" -> TriggerType.SIREN
         "dog_bark" -> TriggerType.DOG_BARK
-        "motorcycle" -> TriggerType.MOTORCYCLE
-        "firework" -> TriggerType.FIREWORK
+        "baby_crying" -> TriggerType.BABY_CRYING
         else -> TriggerType.UNKNOWN
     }
 
     private fun mapLabelToDisplayName(label: String): String = when (label) {
-        "siren" -> "Ambulance Siren"
+        "siren" -> "Ambulance"
         "dog_bark" -> "Dog Barking"
-        "motorcycle" -> "Motorcycle"
-        "firework" -> "Firework"
+        "baby_crying" -> "Baby Crying"
         else -> label.replaceFirstChar { it.uppercase() }
     }
 
@@ -142,7 +139,7 @@ object TriggerManager {
                 detectedAt = startTime,
                 maskingPctApplied = (setting.maskingLevel * 100).toInt(),
                 responseTypeUsed = setting.responseType,
-                latencyMs = System.currentTimeMillis() - startTime, // Simplified latency
+                latencyMs = System.currentTimeMillis() - startTime,
                 eventDurationMs = 0,
                 endedAt = null
             )
@@ -209,10 +206,8 @@ object TriggerManager {
                     updatedAt = System.currentTimeMillis()
                 )
                 
-                // insertOrUpdate will handle adding the row if it doesn't exist
                 val newConfigId = database?.userTriggerConfigDao()?.insertOrUpdateConfig(configEntity)
                 
-                // If it was a new insertion (configId was 0), update the memory state with the new PK
                 if (updated.configId == 0 && newConfigId != null) {
                     scope?.launch(Dispatchers.Main) {
                         val currentIndex = settings.indexOfFirst { it.triggerId == triggerId }

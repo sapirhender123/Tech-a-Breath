@@ -100,8 +100,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
     val icon = when(trigger.type) {
         TriggerType.SIREN -> Icons.Default.Campaign
         TriggerType.DOG_BARK -> Icons.Default.Pets
-        TriggerType.MOTORCYCLE -> Icons.Default.TwoWheeler
-        TriggerType.FIREWORK -> Icons.Default.Celebration
+        TriggerType.BABY_CRYING -> Icons.Default.ChildCare
         else -> Icons.Default.VolumeUp
     }
 
