@@ -32,18 +32,23 @@ object TriggerManager {
     private val _activeIntervention = MutableStateFlow<InterventionMode?>(null)
     val activeIntervention: StateFlow<InterventionMode?> = _activeIntervention.asStateFlow()
 
+    private val _isAppInForeground = MutableStateFlow(false)
+    val isAppInForeground: StateFlow<Boolean> = _isAppInForeground.asStateFlow()
+
+    var isProtectionActivated = false 
+
     // Shared settings state
     val settings = mutableStateListOf<TriggerSettingData>(
-        TriggerSettingData(1, 0, TriggerType.MOTORCYCLE, "Motorcycle", isEnabled = false),
-        TriggerSettingData(2, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
-        TriggerSettingData(3, 0, TriggerType.SIREN, "Ambulance Siren", isEnabled = false),
-        TriggerSettingData(4, 0, TriggerType.FIREWORK, "Firework", isEnabled = false)
+        TriggerSettingData(1, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
+        TriggerSettingData(2, 0, TriggerType.SIREN, "Ambulance", isEnabled = false),
+        TriggerSettingData(3, 0, TriggerType.BABY_CRYING, "Baby Crying", isEnabled = false)
     )
 
     private var currentEventId: Long? = null
     private var detectionStartTime: Long = 0
     private var activeMinDuration: Int = 0
     private var isLockedManually: Boolean = false
+    private var manualLockUntil: Long = 0
 
     private var database: AppDatabase? = null
     private var scope: CoroutineScope? = null
@@ -52,6 +57,10 @@ object TriggerManager {
         database = db
         scope = coroutineScope
         loadFromDatabase()
+    }
+
+    fun setAppForeground(isInForeground: Boolean) {
+        _isAppInForeground.value = isInForeground
     }
 
     private fun loadFromDatabase() {
@@ -72,16 +81,19 @@ object TriggerManager {
                             name = mapLabelToDisplayName(trigger.modelLabel),
                             maskingLevel = (config?.maskingPercentage ?: 50).toFloat() / 100f,
                             isEnabled = config?.isActive ?: false,
-                            responseType = config?.responseType ?: "white_noise",
+                            responseType = when(config?.responseType) {
+                                "music", "breathing", "calming_music" -> "calming_music"
+                                else -> "white_noise"
+                            },
                             sensitivityLevel = config?.sensitivityLevel ?: 3,
                             minMaskingDuration = config?.minMaskingDuration ?: 3
                         )
                     }
 
                     scope?.launch(Dispatchers.Main) {
-                settings.clear()
-                settings.addAll(loadedSettings)
-            }
+                        settings.clear()
+                        settings.addAll(loadedSettings)
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -92,16 +104,14 @@ object TriggerManager {
     private fun mapLabelToType(label: String): TriggerType = when (label) {
         "siren" -> TriggerType.SIREN
         "dog_bark" -> TriggerType.DOG_BARK
-        "motorcycle" -> TriggerType.MOTORCYCLE
-        "firework" -> TriggerType.FIREWORK
+        "baby_crying" -> TriggerType.BABY_CRYING
         else -> TriggerType.UNKNOWN
     }
 
     private fun mapLabelToDisplayName(label: String): String = when (label) {
-        "siren" -> "Ambulance Siren"
+        "siren" -> "Ambulance"
         "dog_bark" -> "Dog Barking"
-        "motorcycle" -> "Motorcycle"
-        "firework" -> "Firework"
+        "baby_crying" -> "Baby Crying"
         else -> label.replaceFirstChar { it.uppercase() }
     }
 
@@ -114,6 +124,7 @@ object TriggerManager {
         }
 
         isLockedManually = false
+        manualLockUntil = 0
 
         val startTime = System.currentTimeMillis()
         detectionStartTime = startTime
@@ -121,9 +132,8 @@ object TriggerManager {
 
         val mode = when (setting.responseType) {
             "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, setting.responseType)
-            "music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
-            "breathing" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Breathing Exercise", type, setting.responseType)
-            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, setting.name, type, setting.responseType)
+            "calming_music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
+            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, "white_noise")
         }
         _activeIntervention.value = mode
 
@@ -141,7 +151,7 @@ object TriggerManager {
                 detectedAt = startTime,
                 maskingPctApplied = (setting.maskingLevel * 100).toInt(),
                 responseTypeUsed = setting.responseType,
-                latencyMs = System.currentTimeMillis() - startTime, // Simplified latency
+                latencyMs = System.currentTimeMillis() - startTime,
                 eventDurationMs = 0,
                 endedAt = null
             )
@@ -150,20 +160,21 @@ object TriggerManager {
     }
 
     fun stopIntervention(force: Boolean = false): Boolean {
-        if (isLockedManually && !force) return false
+        val now = System.currentTimeMillis()
+        if (isLockedManually && !force && now < manualLockUntil) return false
         
         // Check minimum duration requirement
         if (!force) {
-            val elapsedMs = System.currentTimeMillis() - detectionStartTime
+            val elapsedMs = now - detectionStartTime
             if (elapsedMs < activeMinDuration * 1000) {
                 return false // Stay active until min duration is reached
             }
         }
         
-        val endTime = System.currentTimeMillis()
         _activeIntervention.value = null
         isLockedManually = false
         activeMinDuration = 0
+        manualLockUntil = 0
 
         // Stop Audio Masking
         AudioOutputManager.stopPlayback()
@@ -174,8 +185,8 @@ object TriggerManager {
             scope?.launch(Dispatchers.IO) {
                 database?.triggerEventDao()?.getEventById(eventId)?.let { event ->
                     val updatedEvent = event.copy(
-                        endedAt = endTime,
-                        eventDurationMs = endTime - event.detectedAt
+                        endedAt = now,
+                        eventDurationMs = now - event.detectedAt
                     )
                     database?.triggerEventDao()?.update(updatedEvent)
                 }
@@ -185,8 +196,13 @@ object TriggerManager {
         return true
     }
 
-    fun setManualLock(locked: Boolean) {
+    fun setManualLock(locked: Boolean, durationMinutes: Int = 0) {
         isLockedManually = locked
+        if (durationMinutes > 0) {
+            manualLockUntil = System.currentTimeMillis() + (durationMinutes * 60 * 1000)
+        } else {
+            manualLockUntil = 0
+        }
     }
 
     fun updateSetting(
@@ -221,10 +237,8 @@ object TriggerManager {
                     updatedAt = System.currentTimeMillis()
                 )
                 
-                // insertOrUpdate will handle adding the row if it doesn't exist
                 val newConfigId = database?.userTriggerConfigDao()?.insertOrUpdateConfig(configEntity)
                 
-                // If it was a new insertion (configId was 0), update the memory state with the new PK
                 if (updated.configId == 0 && newConfigId != null) {
                     scope?.launch(Dispatchers.Main) {
                         val currentIndex = settings.indexOfFirst { it.triggerId == triggerId }
