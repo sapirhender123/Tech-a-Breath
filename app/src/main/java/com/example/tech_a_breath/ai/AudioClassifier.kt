@@ -50,7 +50,7 @@ class AudioClassifierManager(private val context: Context) {
                 val currentType = when {
                     label.contains("siren") || label.contains("ambulance") || 
                     label.contains("police") || label.contains("fire engine") || 
-                    label.contains("alarm") -> TriggerType.SIREN
+                    label.contains("alarm") || label.contains("emergency vehicle") -> TriggerType.SIREN
                     
                     label.contains("barking") || label.contains("howl") || label.contains("dog") ||
                     label.contains("bow-wow") || label.contains("growling") || 

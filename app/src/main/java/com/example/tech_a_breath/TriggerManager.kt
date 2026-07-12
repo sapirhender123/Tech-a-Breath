@@ -117,6 +117,7 @@ object TriggerManager {
 
     fun onTriggerDetected(type: TriggerType) {
         val setting = settings.find { it.type == type }
+        println("TriggerManager: onTriggerDetected($type). Setting enabled: ${setting?.isEnabled}")
         
         if (setting == null || !setting.isEnabled) {
             _activeIntervention.value = null
@@ -163,7 +164,10 @@ object TriggerManager {
         val now = System.currentTimeMillis()
         
         // Handle manual locks (timer extensions)
-        if (isLockedManually && !force && now < manualLockUntil) return false
+        if (isLockedManually && !force && now < manualLockUntil) {
+            println("TriggerManager: Stop ignored. Manual lock active for ${manualLockUntil - now}ms")
+            return false
+        }
         
         // Check minimum duration requirement from settings
         if (!force) {
@@ -173,6 +177,7 @@ object TriggerManager {
             }
         }
         
+        println("TriggerManager: stopIntervention(force=$force) - STOPPING")
         _activeIntervention.value = null
         isLockedManually = false
         activeMinDuration = 0
