@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tech_a_breath.TriggerManager
@@ -222,42 +223,72 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     },
                     valueRange = 3f..60f,
                     steps = 57,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(top = 8.dp),
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
                         activeTrackColor = MaterialTheme.colorScheme.primary,
                         inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                     )
                 )
+                
+                Text(
+                    text = "Masking continues for this duration after the trigger ends.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "Choose a masking sound",
+                    text = "Masking Sound",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
                 
                 val responseOptions = listOf(
-                    "white_noise" to "White Noise",
-                    "calming_music" to "Calming Music"
+                    Triple("white_noise", "White Noise", Icons.Default.Air),
+                    Triple("brown_noise", "Brown Noise", Icons.Default.Waves),
+                    Triple("calming_music", "Calming Music", Icons.Default.MusicNote)
                 )
                 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    responseOptions.forEach { (type, label) ->
-                        FilterChip(
-                            selected = responseType == type,
-                            onClick = { 
+                    responseOptions.forEach { (type, label, icon) ->
+                        val selected = responseType == type
+                        Surface(
+                            onClick = {
                                 responseType = type
                                 TriggerManager.updateSetting(trigger.triggerId, maskingLevel, isEnabled, type, minMaskingDuration = minDuration.toInt())
                             },
-                            label = { Text(label) }
-                        )
+                            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(16.dp),
+                            border = if (!selected) ButtonDefaults.outlinedButtonBorder else null,
+                            modifier = Modifier.weight(1f).height(60.dp)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
                     }
                 }
             }

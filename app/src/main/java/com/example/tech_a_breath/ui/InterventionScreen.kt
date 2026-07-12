@@ -1,6 +1,7 @@
 package com.example.tech_a_breath.ui
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -52,19 +53,8 @@ fun InterventionScreen(
     mode: InterventionMode,
     onStop: () -> Unit
 ) {
-    var timeLeftSeconds by remember { mutableStateOf(0) }
-    val isTimerActive = timeLeftSeconds > 0
-
-    // Timer logic
-    LaunchedEffect(timeLeftSeconds) {
-        if (timeLeftSeconds > 0) {
-            delay(1000L)
-            timeLeftSeconds -= 1
-            if (timeLeftSeconds == 0) {
-                onStop()
-            }
-        }
-    }
+    val manualLockTimeLeft by TriggerManager.manualLockTimeLeft.collectAsState()
+    val isTimerActive = manualLockTimeLeft > 0
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
@@ -136,38 +126,42 @@ fun InterventionScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     val options = listOf(
-                        1 to "Just a moment",
-                        3 to "Take a breath",
-                        5 to "Stay with me"
+                        10 to "Just a moment",
+                        30 to "Take a breath",
+                        60 to "Stay with me"
                     )
-                    options.forEach { (mins, label) ->
-                        OutlinedButton(
+                    options.forEach { (secs, label) ->
+                        // Highlight if the current time left is within this option's range
+                        // or if it was the last selected and is still counting down.
+                        val isSelected = manualLockTimeLeft > 0 && 
+                            (manualLockTimeLeft > (if (secs == 10) 0 else if (secs == 30) 10 else 30)) &&
+                            (manualLockTimeLeft <= secs)
+
+                        Surface(
                             onClick = {
-                                timeLeftSeconds = mins * 60
-                                TriggerManager.setManualLock(true)
+                                TriggerManager.setManualLock(true, secs)
                             },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = SoftText,
-                                containerColor = if (timeLeftSeconds == mins * 60) CalmingWave.copy(alpha = 0.1f) else Color.Transparent
-                            ),
-                            border = ButtonDefaults.outlinedButtonBorder.copy(
-                                brush = Brush.linearGradient(
-                                    if (timeLeftSeconds == mins * 60) 
-                                        listOf(CalmingWave, CalmingWave) 
-                                    else 
-                                        listOf(CalmingWave.copy(alpha = 0.4f), SoftText.copy(alpha = 0.2f))
-                                )
-                            )
+                            color = if (isSelected) CalmingWave else Color.White.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(16.dp),
+                            border = if (!isSelected) BorderStroke(1.dp, SoftText.copy(alpha = 0.2f)) else null,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp),
+                            tonalElevation = if (isSelected) 4.dp else 0.dp
                         ) {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 14.sp
-                            )
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.padding(4.dp)
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (isSelected) Color.White else SoftText,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 14.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -181,7 +175,6 @@ fun InterventionScreen(
                 ) {
                     Button(
                         onClick = {
-                            timeLeftSeconds = 0
                             TriggerManager.setManualLock(false)
                             onStop()
                         },

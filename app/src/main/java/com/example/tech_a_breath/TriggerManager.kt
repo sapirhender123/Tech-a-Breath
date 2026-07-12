@@ -11,6 +11,7 @@ import com.example.tech_a_breath.data.UserTriggerConfigEntity
 import com.example.tech_a_breath.ui.InterventionMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +45,9 @@ object TriggerManager {
         TriggerSettingData(3, 0, TriggerType.BABY_CRYING, "Baby Crying", isEnabled = false)
     )
 
+    private val _manualLockTimeLeft = MutableStateFlow(0)
+    val manualLockTimeLeft: StateFlow<Int> = _manualLockTimeLeft.asStateFlow()
+
     private var currentEventId: Long? = null
     private var detectionStartTime: Long = 0
     private var activeMinDuration: Int = 0
@@ -57,6 +61,18 @@ object TriggerManager {
         database = db
         scope = coroutineScope
         loadFromDatabase()
+        
+        // Start a timer to update remaining lock time
+        coroutineScope.launch(Dispatchers.Default) {
+            while (true) {
+                val now = System.currentTimeMillis()
+                val timeLeft = if (manualLockUntil > now) ((manualLockUntil - now) / 1000).toInt() else 0
+                if (_manualLockTimeLeft.value != timeLeft) {
+                    _manualLockTimeLeft.value = timeLeft
+                }
+                delay(500)
+            }
+        }
     }
 
     fun setAppForeground(isInForeground: Boolean) {
@@ -83,6 +99,7 @@ object TriggerManager {
                             isEnabled = config?.isActive ?: false,
                             responseType = when(config?.responseType) {
                                 "music", "breathing", "calming_music" -> "calming_music"
+                                "brown_noise" -> "brown_noise"
                                 else -> "white_noise"
                             },
                             sensitivityLevel = config?.sensitivityLevel ?: 3,
@@ -133,6 +150,7 @@ object TriggerManager {
 
         val mode = when (setting.responseType) {
             "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, setting.responseType)
+            "brown_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Brown Noise", type, setting.responseType)
             "calming_music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
             else -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, "white_noise")
         }
@@ -165,7 +183,6 @@ object TriggerManager {
         
         // Handle manual locks (timer extensions)
         if (isLockedManually && !force && now < manualLockUntil) {
-            println("TriggerManager: Stop ignored. Manual lock active for ${manualLockUntil - now}ms")
             return false
         }
         
@@ -203,10 +220,10 @@ object TriggerManager {
         return true
     }
 
-    fun setManualLock(locked: Boolean, durationMinutes: Int = 0) {
+    fun setManualLock(locked: Boolean, durationSeconds: Int = 0) {
         isLockedManually = locked
-        if (durationMinutes > 0) {
-            manualLockUntil = System.currentTimeMillis() + (durationMinutes * 60 * 1000)
+        if (durationSeconds > 0) {
+            manualLockUntil = System.currentTimeMillis() + (durationSeconds * 1000)
         } else {
             manualLockUntil = 0
         }

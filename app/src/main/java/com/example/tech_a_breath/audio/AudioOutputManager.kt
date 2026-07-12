@@ -64,7 +64,8 @@ object AudioOutputManager {
                             intervention.responseType
                         )
                     }
-                } else if (!connected && _isPlaying.value) {
+                } else if (_isPlaying.value) {
+                    // Stop if headphones disconnected OR intervention ended
                     stopPlayback()
                 }
             }
@@ -86,11 +87,15 @@ object AudioOutputManager {
         val player = player ?: return
         val context = appContext ?: return
         
-        // Select audio based on responseType (e.g., "white_noise", "music")
-        val resId = context.resources.getIdentifier(responseType, "raw", context.packageName)
+        // Select audio based on responseType (e.g., "white_noise", "calming_music")
+        var resId = context.resources.getIdentifier(responseType, "raw", context.packageName)
         if (resId == 0) {
-            println("AudioOutputManager: Error - resource '$responseType' not found in res/raw")
-            // Fallback to a default if available, or stop
+            println("AudioOutputManager: Warning - resource '$responseType' not found. Falling back to white_noise.")
+            resId = context.resources.getIdentifier("white_noise", "raw", context.packageName)
+        }
+        
+        if (resId == 0) {
+            println("AudioOutputManager: Error - No masking resources available.")
             return
         }
 
