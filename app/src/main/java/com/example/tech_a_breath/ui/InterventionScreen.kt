@@ -131,27 +131,37 @@ fun InterventionScreen(
                         60 to "Stay with me"
                     )
                     options.forEach { (secs, label) ->
-                        val selected = manualLockTimeLeft == secs
-                        OutlinedButton(
+                        // Highlight if the current time left is within this option's range
+                        // or if it was the last selected and is still counting down.
+                        val isSelected = manualLockTimeLeft > 0 && 
+                            (manualLockTimeLeft > (if (secs == 10) 0 else if (secs == 30) 10 else 30)) &&
+                            (manualLockTimeLeft <= secs)
+
+                        Surface(
                             onClick = {
                                 TriggerManager.setManualLock(true, secs)
                             },
-                            modifier = Modifier.weight(1f).height(56.dp),
+                            color = if (isSelected) CalmingWave else Color.White.copy(alpha = 0.05f),
                             shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = if (selected) Color.White else SoftText,
-                                containerColor = if (selected) CalmingWave else Color.Transparent
-                            ),
-                            border = if (selected) null else BorderStroke(1.dp, SoftText.copy(alpha = 0.3f))
+                            border = if (!isSelected) BorderStroke(1.dp, SoftText.copy(alpha = 0.2f)) else null,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp),
+                            tonalElevation = if (isSelected) 4.dp else 0.dp
                         ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 14.sp
-                            )
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.padding(4.dp)
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (isSelected) Color.White else SoftText,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 14.sp
+                                )
+                            }
                         }
                     }
                 }
