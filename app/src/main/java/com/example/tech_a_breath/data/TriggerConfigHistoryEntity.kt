@@ -36,6 +36,9 @@ data class TriggerConfigHistoryEntity(
     @ColumnInfo(name = "response_type")
     val responseType: String,
 
+    @ColumnInfo(name = "min_masking_duration")
+    val minMaskingDuration: Int,
+
     @ColumnInfo(name = "change_source")
     val changeSource: String, // "user_manual" or "app_nudge"
 

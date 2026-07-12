@@ -25,8 +25,8 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Timer
 import com.example.tech_a_breath.R
-import com.example.tech_a_breath.ai.TriggerType
 import com.example.tech_a_breath.TriggerManager
+import com.example.tech_a_breath.ai.TriggerType
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 import com.example.tech_a_breath.ui.theme.CalmingWave
 import com.example.tech_a_breath.ui.theme.DeepBackground
@@ -37,13 +37,12 @@ import kotlinx.coroutines.delay
 
 sealed class InterventionMode {
     data class Masking(
-        val level: Float, 
-        val triggerName: String, 
-        val maskingMethod: String, 
+        val level: Float,
+        val triggerName: String,
+        val maskingMethod: String,
         val triggerType: TriggerType,
         val responseType: String
     ) : InterventionMode()
-    object Breathing : InterventionMode()
     object PhoneCall : InterventionMode()
     object MusicActive : InterventionMode()
 }
@@ -234,10 +233,6 @@ fun InterventionContent(mode: InterventionMode) {
                 primaryText = "Trigger ${mode.triggerName} detected"
                 secondaryText = "Activating ${mode.maskingMethod} (${(mode.level * 100).toInt()}% masking)"
             }
-            InterventionMode.Breathing -> {
-                primaryText = stringResource(R.string.breathe_together)
-                secondaryText = stringResource(R.string.inhale_exhale)
-            }
             InterventionMode.PhoneCall -> {
                 primaryText = stringResource(R.string.silent_support)
                 secondaryText = stringResource(R.string.no_voice_during_call)
@@ -275,20 +270,12 @@ fun MaskingPreview() {
         InterventionScreen(
             mode = InterventionMode.Masking(
                 0.8f, 
-                "Motorcycle", 
+                "Ambulance", 
                 "White Noise", 
-                TriggerType.MOTORCYCLE,
+                TriggerType.SIREN,
                 "white_noise"
             ),
             onStop = {}
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun BreathingPreview() {
-    TechABreathTheme {
-        InterventionScreen(mode = InterventionMode.Breathing, onStop = {})
     }
 }
