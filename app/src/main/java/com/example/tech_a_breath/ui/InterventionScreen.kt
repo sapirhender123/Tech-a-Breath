@@ -275,9 +275,9 @@ fun MaskingPreview() {
         InterventionScreen(
             mode = InterventionMode.Masking(
                 0.8f, 
-                "Baby Crying", 
+                "Motorcycle", 
                 "White Noise", 
-                TriggerType.BABY_CRYING,
+                TriggerType.MOTORCYCLE,
                 "white_noise"
             ),
             onStop = {}

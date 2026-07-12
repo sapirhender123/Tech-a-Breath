@@ -100,7 +100,8 @@ fun TriggerCard(trigger: TriggerSettingData) {
     val icon = when(trigger.type) {
         TriggerType.SIREN -> Icons.Default.Campaign
         TriggerType.DOG_BARK -> Icons.Default.Pets
-        TriggerType.BABY_CRYING -> Icons.Default.ChildCare
+        TriggerType.MOTORCYCLE -> Icons.Default.TwoWheeler
+        TriggerType.FIREWORK -> Icons.Default.Celebration
         else -> Icons.Default.VolumeUp
     }
 
@@ -192,7 +193,9 @@ fun TriggerCard(trigger: TriggerSettingData) {
                 
                 val responseOptions = listOf(
                     "white_noise" to "White Noise",
-                    "calming_music" to "Calming Music"
+                    "music" to "Music",
+                    "breathing" to "Breathing",
+                    "vibration" to "Vibration"
                 )
                 
                 Row(

@@ -19,7 +19,7 @@ import com.example.tech_a_breath.HeadphoneManager
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 
 @Composable
-fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
+fun ListeningScreen(onOpenSettings: () -> Unit) {
     val isHeadsetConnected by HeadphoneManager.isHeadsetConnected.collectAsState()
 
     Box(
@@ -122,19 +122,6 @@ fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Button(
-                onClick = onStopShield,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.secondary
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text("Stop Shield")
             }
 
             Spacer(modifier = Modifier.height(32.dp))

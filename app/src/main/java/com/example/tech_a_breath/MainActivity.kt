@@ -60,15 +60,9 @@ class MainActivity : ComponentActivity() {
                             checkPermissionsAndStart()
                         })
                     } else {
-                        ListeningScreen(
-                            onOpenSettings = {
-                                currentScreen = "settings"
-                            },
-                            onStopShield = {
-                                stopMonitoringService()
-                                currentScreen = "settings"
-                            }
-                        )
+                        ListeningScreen(onOpenSettings = {
+                            currentScreen = "settings"
+                        })
                     }
                 }
             }
@@ -101,11 +95,5 @@ class MainActivity : ComponentActivity() {
             startService(intent)
         }
         isServiceStarted = true
-    }
-
-    private fun stopMonitoringService() {
-        val intent = Intent(this, MonitoringService::class.java)
-        stopService(intent)
-        isServiceStarted = false
     }
 }

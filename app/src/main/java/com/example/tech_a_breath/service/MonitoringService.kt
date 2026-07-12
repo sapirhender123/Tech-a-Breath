@@ -11,6 +11,7 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
+import java.util.Locale
 import androidx.core.app.NotificationCompat
 import com.example.tech_a_breath.ai.AudioClassifierManager
 import com.example.tech_a_breath.ai.TriggerType
@@ -24,15 +25,15 @@ class MonitoringService : Service() {
     private var audioRecord: AudioRecord? = null
     private lateinit var classifierManager: AudioClassifierManager
     private val detectionHistory = mutableListOf<TriggerType>()
-    private val HISTORY_SIZE = 5 
-    private var volumeThresholdDb = -50.0 
+    private val HISTORY_SIZE = 3
+    private var volumeThresholdDb = -50.0 // More sensitive
     private var lastActiveTrigger: TriggerType = TriggerType.UNKNOWN
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "STOP_MASKING") {
-            TriggerManager.stopIntervention(force = true)
-        }
+    override fun onCreate() {
+        super.onCreate()
+    }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
         val notification = createNotification()
         startForeground(1, notification)
@@ -48,6 +49,7 @@ class MonitoringService : Service() {
     private fun startMonitoring() {
         thread(name = "AIThread") {
             try {
+                // Initialize the AI model on background thread
                 classifierManager = AudioClassifierManager(this@MonitoringService)
                 
                 val sampleRate = 16000
@@ -56,8 +58,15 @@ class MonitoringService : Service() {
                 val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat) * 2
 
                 if (androidx.core.content.ContextCompat.checkSelfPermission(this@MonitoringService, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                    audioRecord = AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, bufferSize)
+                    audioRecord = AudioRecord(
+                        MediaRecorder.AudioSource.MIC,
+                        sampleRate,
+                        channelConfig,
+                        audioFormat,
+                        bufferSize
+                    )
                 } else {
+                    println("Tech-a-Breath Error: Microphone permission missing")
                     return@thread
                 }
 
@@ -65,24 +74,28 @@ class MonitoringService : Service() {
 
                 if (audioRecord?.state == AudioRecord.STATE_INITIALIZED && tensorAudio != null) {
                     audioRecord?.startRecording()
-                    
+                    println("Tech-a-Breath: AI Real-Time Monitoring Started")
+
                     while (isRunning) {
-                        val shortBuffer = ShortArray(1600) // 100ms
+                        val shortBuffer = ShortArray(3200) // 200ms chunk
                         val readCount = audioRecord?.read(shortBuffer, 0, shortBuffer.size) ?: 0
                         
                         if (readCount > 0) {
                             val dbLevel = calculateDb(shortBuffer, readCount)
-                            tensorAudio.load(shortBuffer, 0, readCount)
-
+                            
+                            // 1. Determine current trigger type
                             val currentTrigger = if (dbLevel > volumeThresholdDb) {
+                                tensorAudio.load(shortBuffer, 0, readCount)
                                 classifierManager.classify(tensorAudio).triggerType
                             } else {
                                 TriggerType.UNKNOWN
                             }
 
+                            // 2. Always update history (even if it's silence/unknown)
                             detectionHistory.add(currentTrigger)
                             if (detectionHistory.size > HISTORY_SIZE) detectionHistory.removeAt(0)
 
+                            // 3. Check for consistent state changes
                             val consistentTrigger = getConsistentTrigger()
                             if (consistentTrigger != lastActiveTrigger) {
                                 if (consistentTrigger != TriggerType.UNKNOWN) {
@@ -94,10 +107,17 @@ class MonitoringService : Service() {
                                 }
                                 lastActiveTrigger = consistentTrigger
                             }
+
+                            // Optional logging for ambient levels
+                            if (dbLevel <= volumeThresholdDb && System.currentTimeMillis() % 10000 < 200) {
+                                println("Tech-a-Breath: Monitoring ambient (${String.format(Locale.US, "%.1f", dbLevel)} dB)")
+                            }
                         }
+                        Thread.sleep(100)
                     }
                 }
             } catch (e: Exception) {
+                println("Tech-a-Breath Thread Error: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -121,10 +141,10 @@ class MonitoringService : Service() {
 
         for ((trigger, count) in targetCounts) {
             when (trigger) {
-                TriggerType.DOG_BARK -> {
+                TriggerType.DOG_BARK, TriggerType.FIREWORK -> {
                     if (count >= 1) return trigger
                 }
-                TriggerType.SIREN, TriggerType.BABY_CRYING -> {
+                TriggerType.SIREN, TriggerType.MOTORCYCLE -> {
                     if (count >= 2) return trigger
                 }
                 else -> {}
@@ -146,21 +166,12 @@ class MonitoringService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun createNotification(): Notification {
-        val stopIntent = Intent(this, MonitoringService::class.java).apply {
-            action = "STOP_MASKING"
-        }
-        val stopPendingIntent = android.app.PendingIntent.getService(
-            this, 0, stopIntent,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) android.app.PendingIntent.FLAG_IMMUTABLE else 0
-        )
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Shield Active")
             .setContentText("Listening to environment...")
-            .setSmallIcon(android.R.drawable.ic_lock_lock)
+            .setSmallIcon(android.R.drawable.ic_lock_lock) // Temporary built-in system icon
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop Masking", stopPendingIntent)
             .build()
     }
 
