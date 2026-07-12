@@ -223,12 +223,19 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     },
                     valueRange = 3f..60f,
                     steps = 57,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(top = 8.dp),
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
                         activeTrackColor = MaterialTheme.colorScheme.primary,
                         inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                     )
+                )
+                
+                Text(
+                    text = "Masking continues for this duration after the trigger ends.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
