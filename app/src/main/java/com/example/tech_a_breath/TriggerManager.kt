@@ -248,6 +248,15 @@ object TriggerManager {
             )
             settings[index] = updated
 
+            // If this trigger is currently active, update the intervention mode to apply volume/sound changes immediately
+            val current = _activeIntervention.value
+            if (current is InterventionMode.Masking && current.triggerType == updated.type) {
+                _activeIntervention.value = current.copy(
+                    level = updated.maskingLevel,
+                    responseType = updated.responseType
+                )
+            }
+
             // Save to DB
             scope?.launch(Dispatchers.IO) {
                 val configEntity = UserTriggerConfigEntity(

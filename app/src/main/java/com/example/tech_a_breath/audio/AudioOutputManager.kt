@@ -33,6 +33,8 @@ object AudioOutputManager {
     
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
+    
+    private var currentResponseType: String? = null
 
     fun init(context: Context) {
         if (player != null) return
@@ -57,16 +59,27 @@ object AudioOutputManager {
                 connected to intervention
             }.collectLatest { (connected, intervention) ->
                 if (intervention != null && connected) {
-                    if (!_isPlaying.value && intervention is InterventionMode.Masking) {
-                        startMasking(
-                            intervention.triggerType, 
-                            (intervention.level * 100).toInt(),
-                            intervention.responseType
-                        )
+                    if (intervention is InterventionMode.Masking) {
+                        val targetVolume = (intervention.level * 100).toInt()
+                        
+                        // Restart if not playing OR if the sound type itself changed
+                        if (!_isPlaying.value || currentResponseType != intervention.responseType) {
+                            currentResponseType = intervention.responseType
+                            startMasking(
+                                intervention.triggerType, 
+                                targetVolume,
+                                intervention.responseType
+                            )
+                        } else {
+                            // Update volume in real-time if only the slider moved
+                            maskingController.setMaskingLevel(targetVolume)
+                            player?.let { maskingController.applyMasking(it) }
+                        }
                     }
                 } else if (_isPlaying.value) {
                     // Stop if headphones disconnected OR intervention ended
                     stopPlayback()
+                    currentResponseType = null
                 }
             }
         }
@@ -79,6 +92,7 @@ object AudioOutputManager {
         }
 
         if (requestAudioFocus()) {
+            currentResponseType = responseType
             startMasking(triggerType, maskingLevel, responseType)
         }
     }
@@ -112,6 +126,7 @@ object AudioOutputManager {
 
     fun stopPlayback() {
         player?.stop()
+        currentResponseType = null
         releaseAudioFocus()
     }
 
