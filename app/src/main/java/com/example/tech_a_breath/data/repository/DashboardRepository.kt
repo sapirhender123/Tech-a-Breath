@@ -32,4 +32,5 @@ interface DashboardRepository {
     // ── Writes ────────────────────────────────────────────────────────────────
     suspend fun insertEvent(event: TriggerEventEntity)
     suspend fun insertFeedback(feedback: EventFeedbackEntity)
+    suspend fun updateMaskingPercentage(triggerId: Int, pct: Int)
 }

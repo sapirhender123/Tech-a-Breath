@@ -14,6 +14,7 @@ import com.example.tech_a_breath.ui.dashboard.DashboardRoot
 import com.example.tech_a_breath.ui.dashboard.friendly.AdjustmentSuggestionScreen
 import com.example.tech_a_breath.ui.dashboard.friendly.FriendlyDashboardScreen
 import com.example.tech_a_breath.ui.dashboard.friendly.FriendlyDashboardViewModel
+import com.example.tech_a_breath.ui.screens.WelcomeScreen
 import com.example.tech_a_breath.data.prefs.WeeklyRatingStore
 
 /**

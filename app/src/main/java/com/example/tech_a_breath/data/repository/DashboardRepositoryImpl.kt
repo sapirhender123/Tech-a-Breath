@@ -56,4 +56,7 @@ class DashboardRepositoryImpl(
 
     override suspend fun insertFeedback(feedback: EventFeedbackEntity) =
         weeklyDao.insertFeedback(feedback)
+
+    override suspend fun updateMaskingPercentage(triggerId: Int, pct: Int) =
+        triggerDao.updateMaskingPercentage(triggerId, pct)
 }
