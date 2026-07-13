@@ -19,7 +19,11 @@ import com.example.tech_a_breath.HeadphoneManager
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 
 @Composable
-fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
+fun ListeningScreen(
+    onOpenSettings: () -> Unit,
+    onStopShield: () -> Unit,
+    onOpenDashboard: () -> Unit
+) {
     val isHeadsetConnected by HeadphoneManager.isHeadsetConnected.collectAsState()
 
     Box(
@@ -31,8 +35,20 @@ fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
             modifier = Modifier.align(Alignment.TopEnd),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(
+                onClick = onOpenDashboard
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Dashboard",
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Icon(
-                imageVector = Icons.Default.Info,
+                imageVector = Icons.Default.Info, // Consider using a headset icon if available
                 contentDescription = "Headphones Status",
                 tint = if (isHeadsetConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error.copy(alpha = 0.6f),
                 modifier = Modifier.size(20.dp)

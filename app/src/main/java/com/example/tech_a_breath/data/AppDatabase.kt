@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
         TriggerEventEntity::class,
         EventFeedbackEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,6 +26,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun triggerConfigHistoryDao(): TriggerConfigHistoryDao
     abstract fun triggerEventDao(): TriggerEventDao
     abstract fun eventFeedbackDao(): EventFeedbackDao
+
+    // Dashboard DAOs
+    abstract fun weeklyDashboardDao(): WeeklyDashboardDao
+    abstract fun monthlyDashboardDao(): MonthlyDashboardDao
+    abstract fun effectivenessDao(): EffectivenessDao
 
     companion object {
         @Volatile
@@ -40,6 +45,23 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     .fallbackToDestructiveMigration()
                     .addCallback(AppDatabaseCallback(scope))
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+
+        /**
+         * Unencrypted instance for development.
+         */
+        fun getInstanceUnencrypted(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "tech_a_breath_database"
+                )
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
@@ -61,15 +83,13 @@ abstract class AppDatabase : RoomDatabase() {
             suspend fun populateDatabase(database: AppDatabase) {
                 val triggerDao = database.triggerDao()
 
-                // Insert Triggers (Only high accuracy core triggers)
                 val triggers = listOf(
-                    TriggerEntity(id = 1, modelLabel = "dog_bark"),
-                    TriggerEntity(id = 2, modelLabel = "siren"),
-                    TriggerEntity(id = 3, modelLabel = "baby_crying")
+                    TriggerEntity(id = 1, modelLabel = "motorcycle"),
+                    TriggerEntity(id = 2, modelLabel = "dog_bark"),
+                    TriggerEntity(id = 3, modelLabel = "siren"),
+                    TriggerEntity(id = 4, modelLabel = "firework")
                 )
                 triggerDao.insertAll(triggers)
-                
-                // User configs are empty by default
             }
         }
     }
