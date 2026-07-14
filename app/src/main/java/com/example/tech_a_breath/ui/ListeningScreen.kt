@@ -22,7 +22,8 @@ import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 fun ListeningScreen(
     onOpenSettings: () -> Unit,
     onStopShield: () -> Unit,
-    onOpenDashboard: () -> Unit
+    onOpenDashboard: () -> Unit,
+    onOpenFriendlyDashboard: () -> Unit,
 ) {
     val isHeadsetConnected by HeadphoneManager.isHeadsetConnected.collectAsState()
 
@@ -151,6 +152,30 @@ fun ListeningScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text("Stop Shield")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Friendly Dashboard Buttons
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = onOpenFriendlyDashboard,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("How was your week?")
+                }
+
+                OutlinedButton(
+                    onClick = onOpenDashboard,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Open Dashboard")
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

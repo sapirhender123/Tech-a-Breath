@@ -87,7 +87,8 @@ abstract class AppDatabase : RoomDatabase() {
                     TriggerEntity(id = 1, modelLabel = "motorcycle"),
                     TriggerEntity(id = 2, modelLabel = "dog_bark"),
                     TriggerEntity(id = 3, modelLabel = "siren"),
-                    TriggerEntity(id = 4, modelLabel = "firework")
+                    TriggerEntity(id = 4, modelLabel = "firework"),
+                    TriggerEntity(id = 5, modelLabel = "baby_crying")
                 )
                 triggerDao.insertAll(triggers)
             }

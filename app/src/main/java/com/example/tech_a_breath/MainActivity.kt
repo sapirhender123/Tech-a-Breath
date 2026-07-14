@@ -138,6 +138,7 @@ fun MainAppScreen(
     onStartProtection: () -> Unit,
     onStopProtection: () -> Unit,
     onOpenDashboard: () -> Unit,
+    onOpenFriendlyDashboard: () -> Unit,
 ) {
     var currentScreen by remember {
         mutableStateOf(if (TriggerManager.isProtectionActivated) "monitoring" else "settings")
@@ -170,7 +171,8 @@ fun MainAppScreen(
                     onStopProtection()
                     currentScreen = "settings"
                 },
-                onOpenDashboard = onOpenDashboard
+                onOpenDashboard = onOpenDashboard,
+                onOpenFriendlyDashboard = onOpenFriendlyDashboard
             )
         }
     }

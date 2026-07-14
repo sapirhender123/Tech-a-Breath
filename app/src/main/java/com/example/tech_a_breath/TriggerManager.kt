@@ -38,7 +38,8 @@ object TriggerManager {
         TriggerSettingData(1, 0, TriggerType.MOTORCYCLE, "Motorcycle", isEnabled = false),
         TriggerSettingData(2, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
         TriggerSettingData(3, 0, TriggerType.SIREN, "Ambulance", isEnabled = false),
-        TriggerSettingData(4, 0, TriggerType.FIREWORK, "Firework", isEnabled = false)
+        TriggerSettingData(4, 0, TriggerType.FIREWORK, "Firework", isEnabled = false),
+        TriggerSettingData(5, 0, TriggerType.BABY_CRYING, "Baby Crying", isEnabled = false)
     )
 
     private val _manualLockTimeLeft = MutableStateFlow(0)

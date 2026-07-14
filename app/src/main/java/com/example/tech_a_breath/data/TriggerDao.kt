@@ -16,4 +16,7 @@ interface TriggerDao {
 
     @Query("SELECT * FROM triggers")
     fun getAllTriggersFlow(): Flow<List<TriggerEntity>>
+
+    @Query("UPDATE user_trigger_config SET masking_percentage = :pct WHERE trigger_id = :triggerId")
+    suspend fun updateMaskingPercentage(triggerId: Int, pct: Int)
 }
