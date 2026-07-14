@@ -13,8 +13,7 @@ import com.example.tech_a_breath.HeadphoneManager
 import com.example.tech_a_breath.TriggerManager
 import com.example.tech_a_breath.ai.TriggerType
 import com.example.tech_a_breath.ui.InterventionMode
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -29,7 +28,8 @@ object AudioOutputManager {
     private var player: ExoPlayer? = null
     private var audioManager: AudioManager? = null
     private val maskingController = MaskingController()
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var fadeJob: Job? = null
     
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
@@ -101,33 +101,53 @@ object AudioOutputManager {
         val player = player ?: return
         val context = appContext ?: return
         
-        // Select audio based on responseType (e.g., "white_noise", "calming_music")
+        fadeJob?.cancel()
+        
+        // Select audio based on responseType
         var resId = context.resources.getIdentifier(responseType, "raw", context.packageName)
         if (resId == 0) {
-            println("AudioOutputManager: Warning - resource '$responseType' not found. Falling back to white_noise.")
             resId = context.resources.getIdentifier("white_noise", "raw", context.packageName)
         }
         
-        if (resId == 0) {
-            println("AudioOutputManager: Error - No masking resources available.")
-            return
-        }
+        if (resId == 0) return
 
         val uri = Uri.parse("android.resource://${context.packageName}/$resId")
         val mediaItem = MediaItem.fromUri(uri)
         
         maskingController.setMaskingLevel(maskingLevel)
-        maskingController.applyMasking(player)
         
+        // Start from zero volume for a gentle transition
+        player.volume = 0f
         player.setMediaItem(mediaItem)
         player.prepare()
         player.play()
+
+        // Fade in over 1.5 seconds
+        fadeJob = scope.launch {
+            val targetVolume = maskingLevel / 100f
+            val steps = 30
+            val delayMs = 50L
+            for (i in 1..steps) {
+                player.volume = (targetVolume * i) / steps
+                delay(delayMs)
+            }
+        }
     }
 
     fun stopPlayback() {
-        player?.stop()
-        currentResponseType = null
-        releaseAudioFocus()
+        fadeJob?.cancel()
+        fadeJob = scope.launch {
+            val player = player ?: return@launch
+            val startVolume = player.volume
+            val steps = 20
+            for (i in steps downTo 0) {
+                player.volume = (startVolume * i) / steps
+                delay(30)
+            }
+            player.stop()
+            currentResponseType = null
+            releaseAudioFocus()
+        }
     }
 
     private fun requestAudioFocus(): Boolean {
