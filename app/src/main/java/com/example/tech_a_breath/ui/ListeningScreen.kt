@@ -123,7 +123,7 @@ fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isHeadsetConnected) "Protected" else "Connect headphones",
+                            text = if (isHeadsetConnected) "Connected" else "Connect headphones",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )

@@ -276,7 +276,7 @@ class MonitoringService : Service() {
                 .setContentText("Acoustic Shield is currently masking a trigger.")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Safe Now", stopPendingIntent)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "You are safe now.", stopPendingIntent)
                 .addAction(android.R.drawable.ic_menu_recent_history, "1m", ext1PI)
                 .addAction(android.R.drawable.ic_menu_recent_history, "3m", ext3PI)
                 .addAction(android.R.drawable.ic_menu_recent_history, "5m", ext5PI)
