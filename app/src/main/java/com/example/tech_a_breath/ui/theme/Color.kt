@@ -36,3 +36,7 @@ val TriggerDogBark    = Color(0xFFFF8A65)   // Orange
 val TriggerMotorcycle = Color(0xFFFFCA28)   // Amber
 val TriggerFirework   = Color(0xFF29B6F6)   // Light blue
 val TriggerUnknown    = Color(0xFF90A4AE)   // Blue-grey
+
+val White = Color(0xFFFFFFFF)
+val OnDark = Color(0xFFE2E8F0)
+val OnDarkSub = Color(0xFF94A3B8)

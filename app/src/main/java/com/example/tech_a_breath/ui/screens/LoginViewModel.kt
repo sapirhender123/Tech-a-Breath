@@ -24,13 +24,13 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
 
-    fun onGoogleSignInClick() {
+    fun onGoogleSignInClick(context: android.content.Context) {
         if (_uiState.value.isLoading) return
 
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
         viewModelScope.launch {
-            when (val result = authClient.signIn()) {
+            when (val result = authClient.signIn(context)) {
                 is SignInResult.Success -> {
                     _uiState.update {
                         it.copy(isLoading = false, signedInUser = result.user)

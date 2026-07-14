@@ -8,7 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 
 class TechABreathApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
-    val database by lazy { AppDatabase.getInstanceUnencrypted(this) }
+    val database by lazy { AppDatabase.getDatabase(this, applicationScope) }
 
     override fun onCreate() {
         super.onCreate()

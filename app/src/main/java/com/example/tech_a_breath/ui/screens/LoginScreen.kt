@@ -28,6 +28,7 @@ fun LoginScreen(
     onSignInSuccess: (GoogleUser) -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val colors = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
 
@@ -91,7 +92,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = viewModel::onGoogleSignInClick,
+                onClick = { viewModel.onGoogleSignInClick(context) },
                 enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
