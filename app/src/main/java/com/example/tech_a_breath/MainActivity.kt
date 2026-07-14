@@ -60,9 +60,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TechABreathTheme {
+                val isProtectionActivated by TriggerManager.isProtectionActivated.collectAsState()
+                
                 var currentScreen by remember { 
-                    mutableStateOf(if (TriggerManager.isProtectionActivated) "monitoring" else "settings") 
+                    mutableStateOf(if (isProtectionActivated) "monitoring" else "settings") 
                 }
+                
+                // Keep currentScreen in sync with the global protection state
+                LaunchedEffect(isProtectionActivated) {
+                    currentScreen = if (isProtectionActivated) "monitoring" else "settings"
+                }
+
                 val activeIntervention by TriggerManager.activeIntervention.collectAsState()
 
                 Surface(
@@ -76,20 +84,17 @@ class MainActivity : ComponentActivity() {
                         )
                     } else if (currentScreen == "settings") {
                         TriggerProtectionSettingsScreen(onStartProtection = {
-                            TriggerManager.isProtectionActivated = true
-                            currentScreen = "monitoring"
+                            TriggerManager.setProtectionActivated(true)
                             checkPermissionsAndStart()
                         })
                     } else {
                         ListeningScreen(
                             onOpenSettings = {
-                                TriggerManager.isProtectionActivated = false
-                                currentScreen = "settings"
+                                TriggerManager.setProtectionActivated(false)
                             },
                             onStopShield = {
+                                TriggerManager.setProtectionActivated(false)
                                 stopMonitoringService()
-                                TriggerManager.isProtectionActivated = false
-                                currentScreen = "settings"
                             }
                         )
                     }

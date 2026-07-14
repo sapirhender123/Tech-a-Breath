@@ -1,168 +1,251 @@
 package com.example.tech_a_breath.ui
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Headset
+import androidx.compose.material.icons.filled.HeadsetOff
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tech_a_breath.HeadphoneManager
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
+import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
     val isHeadsetConnected by HeadphoneManager.isHeadsetConnected.collectAsState()
+    
+    val infiniteTransition = rememberInfiniteTransition(label = "breathing")
+    val breatheScale by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
+    var statusText by remember { mutableStateOf("Activating the shield...") }
+    LaunchedEffect(Unit) {
+        delay(3000)
+        statusText = "Shield is active"
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        Row(
-            modifier = Modifier.align(Alignment.TopEnd),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = "Headphones Status",
-                tint = if (isHeadsetConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error.copy(alpha = 0.6f),
-                modifier = Modifier.size(20.dp)
-            )
-            
-            Text(
-                text = if (isHeadsetConnected) "Connected" else "No Headphones",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isHeadsetConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error.copy(alpha = 0.6f),
-                modifier = Modifier.padding(start = 4.dp)
-            )
-            
-            Spacer(modifier = Modifier.width(8.dp))
-
-            IconButton(
-                onClick = onOpenSettings
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF1E1B4B), // Deep Indigo
+                        Color(0xFF312E81), // Indigo 900
+                        Color(0xFF1E293B)  // Slate 800
+                    )
                 )
-            }
+            )
+    ) {
+        // Immersive "Designed" Background with glowing Orbs
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFF6366F1).copy(alpha = 0.15f), Color.Transparent),
+                    center = androidx.compose.ui.geometry.Offset(size.width * 0.2f, size.height * 0.3f),
+                    radius = size.width * 0.8f
+                )
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFF10B981).copy(alpha = 0.1f), Color.Transparent),
+                    center = androidx.compose.ui.geometry.Offset(size.width * 0.8f, size.height * 0.7f),
+                    radius = size.width * 0.6f
+                )
+            )
         }
 
+        // Subtly moving waves in background
+        CalmingWaveAnimation(
+            modifier = Modifier.fillMaxSize(),
+            waveColor = Color.White.copy(alpha = 0.05f),
+            amplitude = 25f,
+            durationMillis = 15000
+        )
+
+        // Main Content Layer
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 64.dp),
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            CalmingWaveAnimation(
-                modifier = Modifier
-                    .size(240.dp),
-                amplitude = 20f,
-                durationMillis = 5000
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Text(
-                text = "Acoustic Shield Active",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Light,
-                    color = MaterialTheme.colorScheme.primary
-                ),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "I'm listening and ready to protect your peace. You're safe to focus on what matters.",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 28.sp
-                ),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-            
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(32.dp)
+            // Top Bar - Minimalist
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    color = Color.White.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.padding(8.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .padding(2.dp)
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                         CircularProgressIndicator(
-                             strokeWidth = 2.dp,
-                             color = MaterialTheme.colorScheme.primary
-                         )
+                        Icon(
+                            imageVector = if (isHeadsetConnected) Icons.Default.Headset else Icons.Default.HeadsetOff,
+                            contentDescription = null,
+                            tint = if (isHeadsetConnected) Color.White else Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isHeadsetConnected) "Connected" else "Connect headphones",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White
+                        )
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Monitoring environment...",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                }
+
+                IconButton(onClick = onOpenSettings) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = Color.White.copy(alpha = 0.6f)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Button(
-                onClick = onStopShield,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.secondary
-                ),
-                shape = RoundedCornerShape(16.dp)
+            // Central Relaxation Focus
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.graphicsLayer {
+                    scaleX = breatheScale
+                    scaleY = breatheScale
+                }
             ) {
-                Text("Stop Shield")
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Check if any triggers are active in the settings
-            val anyTriggerEnabled = com.example.tech_a_breath.TriggerManager.settings.any { it.isEnabled }
-
-            if (!anyTriggerEnabled) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.1f),
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.2f)),
+                    modifier = Modifier.size(200.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Warning: No triggers selected. Please enable sounds you want to mask in the settings.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Shield,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.4f),
+                            modifier = Modifier.size(80.dp)
+                        )
+                        
+                        // Listening waves overlay on the shield
+                        CalmingWaveAnimation(
+                            modifier = Modifier.size(120.dp),
+                            waveColor = Color.White.copy(alpha = 0.2f),
+                            amplitude = 10f,
+                            durationMillis = 5000
                         )
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(48.dp))
+                
+                AnimatedContent(
+                    targetState = statusText,
+                    transitionSpec = {
+                        ContentTransform(
+                            targetContentEnter = fadeIn(animationSpec = tween(1500)),
+                            initialContentExit = fadeOut(animationSpec = tween(1500))
+                        )
+                    }
+                ) { text ->
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.Light,
+                        letterSpacing = 2.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            // Bottom Actions & Status
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "The world is quiet. You are safe.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.ExtraLight,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(48.dp))
+                
+                OutlinedButton(
+                    onClick = onStopShield,
+                    modifier = Modifier
+                        .height(50.dp)
+                        .fillMaxWidth(0.7f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Stop Shield",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Light
+                    )
+                }
+            }
+        }
+
+        // Subtle warning if no triggers
+        val anyTriggerEnabled = com.example.tech_a_breath.TriggerManager.settings.any { it.isEnabled }
+        if (!anyTriggerEnabled) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 100.dp)
+                    .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "No sounds selected for protection",
+                    color = Color.White.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
         }
     }
