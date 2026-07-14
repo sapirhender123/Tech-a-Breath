@@ -14,6 +14,7 @@ import com.example.tech_a_breath.ui.dashboard.DashboardRoot
 import com.example.tech_a_breath.ui.dashboard.friendly.AdjustmentSuggestionScreen
 import com.example.tech_a_breath.ui.dashboard.friendly.FriendlyDashboardScreen
 import com.example.tech_a_breath.ui.dashboard.friendly.FriendlyDashboardViewModel
+import com.example.tech_a_breath.ui.screens.LoginScreen
 import com.example.tech_a_breath.ui.screens.WelcomeScreen
 import com.example.tech_a_breath.data.prefs.WeeklyRatingStore
 
@@ -22,6 +23,7 @@ import com.example.tech_a_breath.data.prefs.WeeklyRatingStore
  */
 object Routes {
     const val WELCOME = "welcome"
+    const val LOGIN = "login"
     const val MAIN = "main"
     const val DASHBOARD = "dashboard"
     const val FRIENDLY_CHECKIN = "friendly_checkin"
@@ -45,6 +47,17 @@ fun TechABreathNavGraph(
         composable(Routes.WELCOME) {
             WelcomeScreen(
                 onGetStartedClick = {
+                    navController.navigate(Routes.LOGIN)
+                }
+            )
+        }
+
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSignInSuccess = {
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
                     }

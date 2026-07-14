@@ -19,6 +19,10 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
+
+        // Access the Google Client ID from environment variables or project properties
+        def googleClientId = System.getenv("GOOGLE_CLIENT") ?: project.findProperty("GOOGLE_CLIENT") ?: ""
+        buildConfigField "String", "GOOGLE_CLIENT", "\"$googleClientId\""
     }
 
     buildTypes {
@@ -37,6 +41,7 @@ android {
     buildFeatures {
         compose true
         mlModelBinding true
+        buildConfig true
     }
     composeOptions {
         kotlinCompilerExtensionVersion '1.4.6'
@@ -64,6 +69,11 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.1'
     implementation 'androidx.activity:activity-compose:1.7.2'
+
+    // Google Credential Manager (Sign In With Google)
+    implementation 'androidx.credentials:credentials:1.2.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.2.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.0'
 
     // Jetpack Compose UI
     implementation "androidx.compose.ui:ui:1.4.3"
