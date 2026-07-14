@@ -13,10 +13,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import com.example.tech_a_breath.data.DatabaseProvider
 import com.example.tech_a_breath.service.MonitoringService
 import com.example.tech_a_breath.ui.InterventionScreen
 import com.example.tech_a_breath.ui.ListeningScreen
 import com.example.tech_a_breath.ui.TriggerProtectionSettingsScreen
+import com.example.tech_a_breath.ui.navigation.TechABreathNavGraph
 import com.example.tech_a_breath.ui.theme.TechABreathTheme
 
 class MainActivity : ComponentActivity() {
@@ -58,42 +60,15 @@ class MainActivity : ComponentActivity() {
             )
         }
 
+        if (!isEmulator()) checkPermissionsAndStart()
+
         setContent {
             TechABreathTheme {
-                var currentScreen by remember { 
-                    mutableStateOf(if (TriggerManager.isProtectionActivated) "monitoring" else "settings") 
-                }
-                val activeIntervention by TriggerManager.activeIntervention.collectAsState()
-
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    if (activeIntervention != null) {
-                        InterventionScreen(
-                            mode = activeIntervention!!,
-                            onStop = { TriggerManager.stopIntervention(force = true) }
-                        )
-                    } else if (currentScreen == "settings") {
-                        TriggerProtectionSettingsScreen(onStartProtection = {
-                            TriggerManager.isProtectionActivated = true
-                            currentScreen = "monitoring"
-                            checkPermissionsAndStart()
-                        })
-                    } else {
-                        ListeningScreen(
-                            onOpenSettings = {
-                                TriggerManager.isProtectionActivated = false
-                                currentScreen = "settings"
-                            },
-                            onStopShield = {
-                                stopMonitoringService()
-                                TriggerManager.isProtectionActivated = false
-                                currentScreen = "settings"
-                            }
-                        )
-                    }
-                }
+                TechABreathNavGraph(
+                    onStartProtection = { checkPermissionsAndStart() },
+                    onStopProtection = { stopMonitoringService() },
+                    databaseProvider = { DatabaseProvider.getRepository(applicationContext) },
+                )
             }
         }
     }
@@ -128,6 +103,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun isEmulator(): Boolean =
+        android.os.Build.FINGERPRINT.startsWith("generic") ||
+        android.os.Build.FINGERPRINT.startsWith("unknown") ||
+        android.os.Build.MODEL.contains("Emulator") ||
+        android.os.Build.MODEL.contains("Android SDK") ||
+        android.os.Build.HARDWARE.contains("goldfish") ||
+        android.os.Build.HARDWARE.contains("ranchu")
+
     private fun startMonitoringService() {
         if (isServiceStarted) return
         val intent = Intent(this, MonitoringService::class.java)
@@ -143,5 +126,54 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(this, MonitoringService::class.java)
         stopService(intent)
         isServiceStarted = false
+    }
+}
+
+/**
+ * Hosts the original settings / monitoring / intervention flow.
+ * Kept in MainActivity.kt to preserve the original logic and structure.
+ */
+@Composable
+fun MainAppScreen(
+    onStartProtection: () -> Unit,
+    onStopProtection: () -> Unit,
+    onOpenDashboard: () -> Unit,
+    onOpenFriendlyDashboard: () -> Unit,
+) {
+    var currentScreen by remember {
+        mutableStateOf(if (TriggerManager.isProtectionActivated) "monitoring" else "settings")
+    }
+    val activeIntervention by TriggerManager.activeIntervention.collectAsState()
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        if (activeIntervention != null) {
+            InterventionScreen(
+                mode = activeIntervention!!,
+                onStop = { TriggerManager.stopIntervention(force = true) }
+            )
+        } else if (currentScreen == "settings") {
+            TriggerProtectionSettingsScreen(onStartProtection = {
+                TriggerManager.isProtectionActivated = true
+                currentScreen = "monitoring"
+                onStartProtection()
+            })
+        } else {
+            ListeningScreen(
+                onOpenSettings = {
+                    TriggerManager.isProtectionActivated = false
+                    currentScreen = "settings"
+                },
+                onStopShield = {
+                    TriggerManager.isProtectionActivated = false
+                    onStopProtection()
+                    currentScreen = "settings"
+                },
+                onOpenDashboard = onOpenDashboard,
+                onOpenFriendlyDashboard = onOpenFriendlyDashboard
+            )
+        }
     }
 }

@@ -3,11 +3,7 @@ package com.example.tech_a_breath
 import androidx.compose.runtime.mutableStateListOf
 import com.example.tech_a_breath.ai.TriggerType
 import com.example.tech_a_breath.audio.AudioOutputManager
-import com.example.tech_a_breath.data.AppDatabase
-import com.example.tech_a_breath.data.TriggerConfigHistoryEntity
-import com.example.tech_a_breath.data.TriggerEntity
-import com.example.tech_a_breath.data.TriggerEventEntity
-import com.example.tech_a_breath.data.UserTriggerConfigEntity
+import com.example.tech_a_breath.data.*
 import com.example.tech_a_breath.ui.InterventionMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,13 +32,14 @@ object TriggerManager {
     private val _isAppInForeground = MutableStateFlow(false)
     val isAppInForeground: StateFlow<Boolean> = _isAppInForeground.asStateFlow()
 
-    var isProtectionActivated = false // Track if monitoring screen should be shown
+    var isProtectionActivated = false
 
-    // Shared settings state
     val settings = mutableStateListOf<TriggerSettingData>(
-        TriggerSettingData(1, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
-        TriggerSettingData(2, 0, TriggerType.SIREN, "Ambulance", isEnabled = false),
-        TriggerSettingData(3, 0, TriggerType.BABY_CRYING, "Baby Crying", isEnabled = false)
+        TriggerSettingData(1, 0, TriggerType.MOTORCYCLE, "Motorcycle", isEnabled = false),
+        TriggerSettingData(2, 0, TriggerType.DOG_BARK, "Dog Barking", isEnabled = false),
+        TriggerSettingData(3, 0, TriggerType.SIREN, "Ambulance", isEnabled = false),
+        TriggerSettingData(4, 0, TriggerType.FIREWORK, "Firework", isEnabled = false),
+        TriggerSettingData(5, 0, TriggerType.BABY_CRYING, "Baby Crying", isEnabled = false)
     )
 
     private val _manualLockTimeLeft = MutableStateFlow(0)
@@ -62,7 +59,6 @@ object TriggerManager {
         scope = coroutineScope
         loadFromDatabase()
         
-        // Start a timer to update remaining lock time
         coroutineScope.launch(Dispatchers.Default) {
             while (true) {
                 val now = System.currentTimeMillis()
@@ -97,11 +93,7 @@ object TriggerManager {
                             name = mapLabelToDisplayName(trigger.modelLabel),
                             maskingLevel = (config?.maskingPercentage ?: 50).toFloat() / 100f,
                             isEnabled = config?.isActive ?: false,
-                            responseType = when(config?.responseType) {
-                                "music", "breathing", "calming_music" -> "calming_music"
-                                "brown_noise" -> "brown_noise"
-                                else -> "white_noise"
-                            },
+                            responseType = config?.responseType ?: "white_noise",
                             sensitivityLevel = config?.sensitivityLevel ?: 3,
                             minMaskingDuration = config?.minMaskingDuration ?: 3
                         )
@@ -121,6 +113,8 @@ object TriggerManager {
     private fun mapLabelToType(label: String): TriggerType = when (label) {
         "siren" -> TriggerType.SIREN
         "dog_bark" -> TriggerType.DOG_BARK
+        "motorcycle" -> TriggerType.MOTORCYCLE
+        "firework" -> TriggerType.FIREWORK
         "baby_crying" -> TriggerType.BABY_CRYING
         else -> TriggerType.UNKNOWN
     }
@@ -128,14 +122,14 @@ object TriggerManager {
     private fun mapLabelToDisplayName(label: String): String = when (label) {
         "siren" -> "Ambulance"
         "dog_bark" -> "Dog Barking"
+        "motorcycle" -> "Motorcycle"
+        "firework" -> "Firework"
         "baby_crying" -> "Baby Crying"
         else -> label.replaceFirstChar { it.uppercase() }
     }
 
     fun onTriggerDetected(type: TriggerType) {
         val setting = settings.find { it.type == type }
-        println("TriggerManager: onTriggerDetected($type). Setting enabled: ${setting?.isEnabled}")
-        
         if (setting == null || !setting.isEnabled) {
             _activeIntervention.value = null
             return
@@ -148,30 +142,30 @@ object TriggerManager {
         detectionStartTime = startTime
         activeMinDuration = setting.minMaskingDuration
 
-        val mode = when (setting.responseType) {
-            "white_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, setting.responseType)
-            "brown_noise" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Brown Noise", type, setting.responseType)
-            "calming_music" -> InterventionMode.Masking(setting.maskingLevel, setting.name, "Calming Music", type, setting.responseType)
-            else -> InterventionMode.Masking(setting.maskingLevel, setting.name, "White Noise", type, "white_noise")
-        }
+        val mode = InterventionMode.Masking(
+            setting.maskingLevel, 
+            setting.name, 
+            setting.responseType.replace("_", " ").replaceFirstChar { it.uppercase() }, 
+            type, 
+            setting.responseType
+        )
         _activeIntervention.value = mode
 
-        // Trigger Audio Masking
         AudioOutputManager.onTriggerDetected(
             type, 
             (setting.maskingLevel * 100).toInt(),
             setting.responseType
         )
 
-        // Record Event Start
         scope?.launch(Dispatchers.IO) {
             val event = TriggerEventEntity(
+                eventId = 0,
                 triggerId = setting.triggerId,
                 detectedAt = startTime,
                 maskingPctApplied = (setting.maskingLevel * 100).toInt(),
                 responseTypeUsed = setting.responseType,
                 latencyMs = System.currentTimeMillis() - startTime,
-                eventDurationMs = 0,
+                eventDurationMs = 0L,
                 endedAt = null
             )
             currentEventId = database?.triggerEventDao()?.insert(event)
@@ -181,29 +175,24 @@ object TriggerManager {
     fun stopIntervention(force: Boolean = false): Boolean {
         val now = System.currentTimeMillis()
         
-        // Handle manual locks (timer extensions)
         if (isLockedManually && !force && now < manualLockUntil) {
             return false
         }
         
-        // Check minimum duration requirement from settings
         if (!force) {
             val elapsedMs = now - detectionStartTime
             if (elapsedMs < activeMinDuration * 1000) {
-                return false // Stay active until min duration is reached
+                return false
             }
         }
         
-        println("TriggerManager: stopIntervention(force=$force) - STOPPING")
         _activeIntervention.value = null
         isLockedManually = false
         activeMinDuration = 0
         manualLockUntil = 0
 
-        // Stop Audio Masking
         AudioOutputManager.stopPlayback()
 
-        // Record Event End
         val eventId = currentEventId
         if (eventId != null) {
             scope?.launch(Dispatchers.IO) {
@@ -248,7 +237,6 @@ object TriggerManager {
             )
             settings[index] = updated
 
-            // If this trigger is currently active, update the intervention mode to apply volume/sound changes immediately
             val current = _activeIntervention.value
             if (current is InterventionMode.Masking && current.triggerType == updated.type) {
                 _activeIntervention.value = current.copy(
@@ -257,7 +245,6 @@ object TriggerManager {
                 )
             }
 
-            // Save to DB
             scope?.launch(Dispatchers.IO) {
                 val configEntity = UserTriggerConfigEntity(
                     configId = updated.configId,
@@ -281,7 +268,6 @@ object TriggerManager {
                     }
                 }
 
-                // Record History
                 val history = TriggerConfigHistoryEntity(
                     triggerId = updated.triggerId,
                     isActive = updated.isEnabled,
