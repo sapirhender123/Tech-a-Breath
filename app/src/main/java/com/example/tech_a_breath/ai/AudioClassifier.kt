@@ -86,8 +86,8 @@ class AudioClassifierManager(private val context: Context) {
                 // Increase thresholds to be more certain
                 val minConfidence = when (currentType) {
                     TriggerType.SIREN -> 0.20f
-                    TriggerType.DOG_BARK -> 0.35f // Increased from 0.20 to avoid false positives
-                    TriggerType.BABY_CRYING -> 0.30f // Increased from 0.25
+                    TriggerType.DOG_BARK -> 0.35f 
+                    TriggerType.BABY_CRYING -> 0.30f
                     else -> 0.40f
                 }
 

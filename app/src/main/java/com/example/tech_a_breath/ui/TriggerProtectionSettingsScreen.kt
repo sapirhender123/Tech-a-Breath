@@ -20,11 +20,11 @@ import androidx.compose.ui.unit.sp
 import com.example.tech_a_breath.TriggerManager
 import com.example.tech_a_breath.TriggerSettingData
 import com.example.tech_a_breath.ai.TriggerType
+import com.example.tech_a_breath.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
-    // Collect the settings from the Manager
     val triggers = remember { TriggerManager.settings }
 
     Box(
@@ -32,19 +32,16 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1E1B4B), // Midnight Indigo
-                        Color(0xFF312E81)
-                    )
+                    colors = listOf(Indigo900, Indigo800)
                 )
             )
     ) {
-        // Decorative background elements
+        // Subtle decorative background orbs
         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
             drawCircle(
                 color = Color.White.copy(alpha = 0.03f),
                 radius = size.width * 0.6f,
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.9f, 0f)
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.9f, size.height * 0.1f)
             )
         }
 
@@ -67,16 +64,17 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
                     Text(
                         text = "Customize how the world sounds to you.",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = Color.White.copy(alpha = 0.6f),
                             lineHeight = 24.sp
                         )
                     )
                 }
             },
             bottomBar = {
-                Surface(
-                    color = Color.Transparent,
-                    modifier = Modifier.padding(24.dp)
+                Box(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .padding(bottom = 16.dp)
                 ) {
                     Button(
                         onClick = onStartProtection,
@@ -86,13 +84,17 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
                         shape = RoundedCornerShape(32.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
-                            contentColor = Color(0xFF1E1B4B)
+                            contentColor = Indigo900
                         ),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                     ) {
-                        Icon(Icons.Default.Shield, contentDescription = null)
+                        Icon(Icons.Default.Shield, contentDescription = null, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Activate Protection", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Activate Protection", 
+                            style = MaterialTheme.typography.titleMedium, 
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -118,7 +120,6 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TriggerCard(trigger: TriggerSettingData) {
-    // We use derived values or local state that updates when the trigger object changes
     var maskingLevel by remember(trigger.triggerId) { mutableStateOf(trigger.maskingLevel) }
     var isEnabled by remember(trigger.triggerId) { mutableStateOf(trigger.isEnabled) }
     var responseType by remember(trigger.triggerId) { mutableStateOf(trigger.responseType) }
@@ -135,10 +136,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
     Card(
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isEnabled) 
-                Color.White.copy(alpha = 0.15f)
-            else 
-                Color.White.copy(alpha = 0.05f)
+            containerColor = if (isEnabled) Color.White.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f)
         ),
         border = if (isEnabled) androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)) else null,
         modifier = Modifier.fillMaxWidth()
@@ -187,9 +185,10 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
-                        checkedTrackColor = Color.White.copy(alpha = 0.3f),
+                        checkedTrackColor = Indigo500,
                         uncheckedThumbColor = Color.White.copy(alpha = 0.3f),
-                        uncheckedTrackColor = Color.Transparent
+                        uncheckedTrackColor = Color.Transparent,
+                        uncheckedBorderColor = Color.White.copy(alpha = 0.3f)
                     )
                 )
             }
@@ -305,13 +304,13 @@ fun TriggerCard(trigger: TriggerSettingData) {
                                     imageVector = icon,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
-                                    tint = if (selected) Color(0xFF1E1B4B) else Color.White
+                                    tint = if (selected) Indigo900 else Color.White
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = label,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (selected) Color(0xFF1E1B4B) else Color.White,
+                                    color = if (selected) Indigo900 else Color.White,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
                                 )
                             }

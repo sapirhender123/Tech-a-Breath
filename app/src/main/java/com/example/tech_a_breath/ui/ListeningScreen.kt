@@ -28,12 +28,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tech_a_breath.HeadphoneManager
+import com.example.tech_a_breath.TriggerManager
 import com.example.tech_a_breath.ui.components.CalmingWaveAnimation
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
+fun ListeningScreen(
+    onOpenSettings: () -> Unit,
+    onStopShield: () -> Unit,
+    onOpenDashboard: () -> Unit,
+    onOpenFriendlyDashboard: () -> Unit,
+) {
     val isHeadsetConnected by HeadphoneManager.isHeadsetConnected.collectAsState()
     
     val infiniteTransition = rememberInfiniteTransition(label = "breathing")
@@ -194,7 +200,10 @@ fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
             }
 
             // Bottom Actions & Status
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 Text(
                     text = "The world is quiet. You are safe.",
                     style = MaterialTheme.typography.bodyLarge,
@@ -203,7 +212,37 @@ fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
                     textAlign = TextAlign.Center
                 )
                 
-                Spacer(modifier = Modifier.height(48.dp))
+                // Dashboard Action Buttons
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = onOpenFriendlyDashboard,
+                        modifier = Modifier.fillMaxWidth(0.8f).height(50.dp),
+                        shape = RoundedCornerShape(25.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White.copy(alpha = 0.2f),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("How was your week?", fontWeight = FontWeight.Light)
+                    }
+
+                    OutlinedButton(
+                        onClick = onOpenDashboard,
+                        modifier = Modifier.fillMaxWidth(0.8f).height(50.dp),
+                        shape = RoundedCornerShape(25.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Open Analytics", fontWeight = FontWeight.Light)
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 OutlinedButton(
                     onClick = onStopShield,
@@ -232,7 +271,7 @@ fun ListeningScreen(onOpenSettings: () -> Unit, onStopShield: () -> Unit) {
         }
 
         // Subtle warning if no triggers
-        val anyTriggerEnabled = com.example.tech_a_breath.TriggerManager.settings.any { it.isEnabled }
+        val anyTriggerEnabled = TriggerManager.settings.any { it.isEnabled }
         if (!anyTriggerEnabled) {
             Box(
                 modifier = Modifier
