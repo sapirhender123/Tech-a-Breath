@@ -5,10 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
@@ -49,43 +47,8 @@ class MonitoringService : Service() {
     
     private val serviceScope = CoroutineScope(Dispatchers.Main + Job())
 
-    private val serviceReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            println("Tech-a-Breath: Broadcast received: ${intent?.action}")
-            when (intent?.action) {
-                ACTION_STOP_SERVICE -> {
-                    TriggerManager.setProtectionActivated(false)
-                    TriggerManager.stopIntervention(force = true)
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    stopSelf()
-                }
-                ACTION_STOP_MASKING -> {
-                    TriggerManager.stopIntervention(force = true)
-                }
-                ACTION_EXTEND_1M -> TriggerManager.setManualLock(true, 60)
-                ACTION_EXTEND_3M -> TriggerManager.setManualLock(true, 180)
-                ACTION_EXTEND_5M -> TriggerManager.setManualLock(true, 300)
-            }
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val filter = IntentFilter().apply {
-                addAction(ACTION_STOP_SERVICE)
-                addAction(ACTION_STOP_MASKING)
-                addAction(ACTION_EXTEND_1M)
-                addAction(ACTION_EXTEND_3M)
-                addAction(ACTION_EXTEND_5M)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(serviceReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                @Suppress("UnspecifiedRegisterReceiverFlag")
-                registerReceiver(serviceReceiver, filter)
-            }
-        }
 
         serviceScope.launch {
             combine(
@@ -100,6 +63,24 @@ class MonitoringService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        println("Tech-a-Breath: onStartCommand with action: ${intent?.action}")
+        
+        when (intent?.action) {
+            ACTION_STOP_SERVICE -> {
+                TriggerManager.setProtectionActivated(false)
+                TriggerManager.stopIntervention(force = true)
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            ACTION_STOP_MASKING -> {
+                TriggerManager.stopIntervention(force = true)
+            }
+            ACTION_EXTEND_1M -> TriggerManager.setManualLock(true, 60)
+            ACTION_EXTEND_3M -> TriggerManager.setManualLock(true, 180)
+            ACTION_EXTEND_5M -> TriggerManager.setManualLock(true, 300)
+        }
+
         createNotificationChannel()
         val notification = createNotification(false, false)
         startForeground(NOTIFICATION_ID, notification)
@@ -220,9 +201,6 @@ class MonitoringService : Service() {
         audioRecord?.stop()
         audioRecord?.release()
         audioRecord = null
-        try {
-            unregisterReceiver(serviceReceiver)
-        } catch (e: Exception) {}
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }
@@ -245,8 +223,8 @@ class MonitoringService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val stopServiceIntent = Intent(ACTION_STOP_SERVICE).setPackage(packageName)
-        val stopServicePendingIntent = PendingIntent.getBroadcast(this, 5, stopServiceIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val stopServiceIntent = Intent(this, MonitoringService::class.java).apply { action = ACTION_STOP_SERVICE }
+        val stopServicePendingIntent = PendingIntent.getService(this, 5, stopServiceIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val channelToUse = if (isInterventionActive && !silent) "InterventionChannel" else CHANNEL_ID
         val builder = NotificationCompat.Builder(this, channelToUse)
@@ -260,17 +238,17 @@ class MonitoringService : Service() {
                 .setContentText("Monitoring environment")
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop Shield", stopServicePendingIntent)
         } else if (isInterventionActive) {
-            val stopIntent = Intent(ACTION_STOP_MASKING).setPackage(packageName)
-            val stopPendingIntent = PendingIntent.getBroadcast(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val stopIntent = Intent(this, MonitoringService::class.java).apply { action = ACTION_STOP_MASKING }
+            val stopPendingIntent = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-            val ext1Intent = Intent(ACTION_EXTEND_1M).setPackage(packageName)
-            val ext1PI = PendingIntent.getBroadcast(this, 2, ext1Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val ext1Intent = Intent(this, MonitoringService::class.java).apply { action = ACTION_EXTEND_1M }
+            val ext1PI = PendingIntent.getService(this, 2, ext1Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             
-            val ext3Intent = Intent(ACTION_EXTEND_3M).setPackage(packageName)
-            val ext3PI = PendingIntent.getBroadcast(this, 3, ext3Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val ext3Intent = Intent(this, MonitoringService::class.java).apply { action = ACTION_EXTEND_3M }
+            val ext3PI = PendingIntent.getService(this, 3, ext3Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-            val ext5Intent = Intent(ACTION_EXTEND_5M).setPackage(packageName)
-            val ext5PI = PendingIntent.getBroadcast(this, 4, ext5Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val ext5Intent = Intent(this, MonitoringService::class.java).apply { action = ACTION_EXTEND_5M }
+            val ext5PI = PendingIntent.getService(this, 4, ext5Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             builder.setContentTitle("Protection Active")
                 .setContentText("Acoustic Shield is currently masking a trigger.")

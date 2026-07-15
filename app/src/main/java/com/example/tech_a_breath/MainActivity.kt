@@ -69,6 +69,9 @@ class MainActivity : ComponentActivity() {
                 // Keep currentScreen in sync with the global protection state
                 LaunchedEffect(isProtectionActivated) {
                     currentScreen = if (isProtectionActivated) "monitoring" else "settings"
+                    if (!isProtectionActivated) {
+                        isServiceStarted = false
+                    }
                 }
 
                 val activeIntervention by TriggerManager.activeIntervention.collectAsState()
