@@ -11,54 +11,54 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary          = Teal400,
+    primary          = Indigo400,
     onPrimary        = White,
-    primaryContainer = Teal700,
+    primaryContainer = Indigo800,
     onPrimaryContainer = OnDark,
 
-    secondary        = Teal300,
+    secondary        = Indigo300,
     onSecondary      = White,
-    secondaryContainer = Teal800,
+    secondaryContainer = Indigo900,
     onSecondaryContainer = OnDarkSub,
 
     tertiary         = Amber500,
-    onTertiary       = Teal900,
+    onTertiary       = Indigo900,
 
-    background       = Color(0xFF0D3D47),
+    background       = Indigo900,
     onBackground     = OnDark,
 
-    surface          = Teal700,
+    surface          = Indigo800,
     onSurface        = OnDark,
-    surfaceVariant   = Teal800,
+    surfaceVariant   = Indigo700,
     onSurfaceVariant = OnDarkSub,
 
-    outline          = Teal600,
+    outline          = Indigo600,
     error            = Color(0xFFCF6679)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary          = Teal700,
+    primary          = Indigo700,
     onPrimary        = White,
-    primaryContainer = Teal50,
-    onPrimaryContainer = Teal900,
+    primaryContainer = Indigo100,
+    onPrimaryContainer = Indigo900,
 
-    secondary        = Teal500,
+    secondary        = Indigo500,
     onSecondary      = White,
-    secondaryContainer = Teal100,
-    onSecondaryContainer = Teal900,
+    secondaryContainer = Indigo200,
+    onSecondaryContainer = Indigo900,
 
     tertiary         = Amber500,
-    onTertiary       = Teal900,
+    onTertiary       = Indigo900,
 
-    background       = Teal50,
-    onBackground     = Teal900,
+    background       = Indigo50,
+    onBackground     = Indigo900,
 
     surface          = White,
-    onSurface        = Teal900,
+    onSurface        = Indigo900,
     surfaceVariant   = Color(0xFFEBF6F8),
-    onSurfaceVariant = Teal700,
+    onSurfaceVariant = Indigo700,
 
-    outline          = Teal200,
+    outline          = Indigo200,
     error            = Color(0xFFB00020)
 )
 
@@ -67,15 +67,15 @@ fun TechABreathTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    // Dynamic color deliberately disabled — we own the palette
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    // We favor the dark theme for the "Designed" immersive look
+    val colorScheme = if (darkTheme) DarkColorScheme else DarkColorScheme // Forcing Dark for now as requested
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 

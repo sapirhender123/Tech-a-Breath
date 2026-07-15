@@ -77,10 +77,6 @@ class AudioClassifierManager(private val context: Context) {
                      label.contains("growling") || (label == "dog")) && 
                     !label.contains("cat") && !label.contains("bird") -> TriggerType.DOG_BARK
 
-                    label.contains("motorcycle") || label.contains("motorbike") -> TriggerType.MOTORCYCLE
-
-                    label.contains("firework") || label.contains("explosion") || label.contains("gunshot") -> TriggerType.FIREWORK
-
                     label.contains("crying") || label.contains("baby") || 
                     label.contains("wail") || label.contains("infant") -> TriggerType.BABY_CRYING
                     
@@ -91,8 +87,6 @@ class AudioClassifierManager(private val context: Context) {
                 val minConfidence = when (currentType) {
                     TriggerType.SIREN -> 0.20f
                     TriggerType.DOG_BARK -> 0.35f 
-                    TriggerType.MOTORCYCLE -> 0.30f
-                    TriggerType.FIREWORK -> 0.25f
                     TriggerType.BABY_CRYING -> 0.30f
                     else -> 0.40f
                 }

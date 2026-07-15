@@ -13,22 +13,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tech_a_breath.ui.theme.*
 
 @Composable
 fun WelcomeScreen(
     onGetStartedClick: () -> Unit
 ) {
-    val colors = MaterialTheme.colorScheme
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.background)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Indigo900, Indigo800)
+                )
+            )
     ) {
+        // Decorative background elements
+        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                color = Indigo500.copy(alpha = 0.1f),
+                radius = size.width * 0.8f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.2f, size.height * 0.3f)
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -43,37 +56,41 @@ fun WelcomeScreen(
                     .clip(CircleShape)
                     .background(
                         Brush.radialGradient(
-                            colors = listOf(colors.secondary, colors.primary)
+                            colors = listOf(Indigo400, Indigo600)
                         )
-                    )
-            )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "🛡️", fontSize = 64.sp)
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
                 text = "Welcome to",
-                color = colors.onBackground,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Center
             )
             Text(
                 text = "TECH A BREATH",
-                color = colors.onBackground,
-                fontSize = 26.sp,
+                color = Color.White,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                letterSpacing = 2.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = "Your space to filter out triggering background noises, " +
                     "enabling a more comfortable routine.",
-                color = colors.onSurfaceVariant,
-                fontSize = 15.sp,
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                lineHeight = 22.sp,
+                lineHeight = 24.sp,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
 
@@ -81,10 +98,10 @@ fun WelcomeScreen(
 
             Button(
                 onClick = onGetStartedClick,
-                shape = RoundedCornerShape(50),
+                shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primary,
-                    contentColor = colors.onPrimary
+                    containerColor = Color.White,
+                    contentColor = Indigo900
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,8 +109,8 @@ fun WelcomeScreen(
             ) {
                 Text(
                     text = "Get Started",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
 

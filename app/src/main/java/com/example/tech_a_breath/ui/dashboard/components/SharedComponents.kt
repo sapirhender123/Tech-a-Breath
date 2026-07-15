@@ -20,10 +20,9 @@ import com.example.tech_a_breath.ui.theme.*
 
 /** Maps a trigger_id (1-based, matches the seeded triggers table) to a TriggerType. */
 fun Int.toTriggerType(): TriggerType = when (this) {
-    1 -> TriggerType.MOTORCYCLE
-    2 -> TriggerType.DOG_BARK
-    3 -> TriggerType.SIREN
-    4 -> TriggerType.FIREWORK
+    1 -> TriggerType.DOG_BARK
+    2 -> TriggerType.SIREN
+    3 -> TriggerType.BABY_CRYING
     else -> TriggerType.UNKNOWN
 }
 
@@ -31,8 +30,6 @@ fun Int.toTriggerType(): TriggerType = when (this) {
 fun TriggerType.color(): Color = when (this) {
     TriggerType.SIREN      -> TriggerSiren
     TriggerType.DOG_BARK   -> TriggerDogBark
-    TriggerType.MOTORCYCLE -> TriggerMotorcycle
-    TriggerType.FIREWORK   -> TriggerFirework
     TriggerType.BABY_CRYING -> Color(0xFF9575CD) // Purple for Baby Crying
     TriggerType.UNKNOWN    -> TriggerUnknown
 }
@@ -41,10 +38,8 @@ fun TriggerType.color(): Color = when (this) {
 fun TriggerType.displayName(): String = when (this) {
     TriggerType.SIREN      -> "Siren"
     TriggerType.DOG_BARK   -> "Dog Bark"
-    TriggerType.MOTORCYCLE -> "Motorcycle"
-    TriggerType.FIREWORK   -> "Firework"
     TriggerType.BABY_CRYING -> "Baby Crying"
-    TriggerType.UNKNOWN    -> "Unknown"
+    else -> "Unknown"
 }
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
@@ -253,7 +248,7 @@ fun NudgeInsightCard(
                 text = "💡  Masking Insight",
                 style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Bold,
-                    color = Teal900
+                    color = Indigo900
                 )
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -262,7 +257,7 @@ fun NudgeInsightCard(
                        "report an average rating of ${String.format("%.1f", suggestedRating)}/5 — " +
                        "higher than your current $currentPct%.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Teal800,
+                color = Indigo800,
                 lineHeight = 18.sp
             )
         }

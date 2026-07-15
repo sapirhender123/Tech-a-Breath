@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,118 +35,130 @@ fun FriendlyDashboardScreen(
         return
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Teal50)
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Indigo900, Indigo800)
+                )
+            )
     ) {
-
-        // ── Botanical illustration placeholder ────────────────────────────────
-        Box(
+        Column(
             modifier = Modifier
-                .size(width = 160.dp, height = 110.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Teal100),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
         ) {
-            Text(text = "🌿", fontSize = 48.sp)
-        }
 
-        // ── Heading ───────────────────────────────────────────────────────────
-        Text(
-            text = "Weekly Summary",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = Teal900
-            ),
-            textAlign = TextAlign.Center
-        )
+            // ── Botanical illustration placeholder ────────────────────────────────
+            Box(
+                modifier = Modifier
+                    .size(width = 160.dp, height = 110.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color.White.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "🌿", fontSize = 48.sp)
+            }
 
-        // ── Summary sentence card ─────────────────────────────────────────────
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = White)
-        ) {
+            // ── Heading ───────────────────────────────────────────────────────────
             Text(
-                text = summaryText(state.weeklyCount, state.dominantMaskingPct),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = Teal800,
-                    lineHeight = 26.sp
+                text = "Weekly Summary",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 ),
-                modifier = Modifier.padding(20.dp),
                 textAlign = TextAlign.Center
             )
-        }
 
-        // ── Emoji picker card ─────────────────────────────────────────────────
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = White)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            // ── Summary sentence card ─────────────────────────────────────────────
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
             ) {
                 Text(
-                    text = "How did masking feel this week?",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = Teal700
+                    text = summaryText(state.weeklyCount, state.dominantMaskingPct),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color.White.copy(alpha = 0.9f),
+                        lineHeight = 26.sp
                     ),
+                    modifier = Modifier.padding(20.dp),
                     textAlign = TextAlign.Center
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+            }
+
+            // ── Emoji picker card ─────────────────────────────────────────────────
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    EMOJIS.forEachIndexed { idx, emoji ->
-                        val rating = idx + 1
-                        val selected = state.selectedRating == rating
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape)
-                                .background(if (selected) Teal200 else Teal50)
-                                .clickable { viewModel.selectRating(rating) },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = emoji, fontSize = 28.sp)
+                    Text(
+                        text = "How did masking feel this week?",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White.copy(alpha = 0.8f)
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        EMOJIS.forEachIndexed { idx, emoji ->
+                            val rating = idx + 1
+                            val selected = state.selectedRating == rating
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(CircleShape)
+                                    .background(if (selected) Indigo500 else Color.White.copy(alpha = 0.05f))
+                                    .clickable { viewModel.selectRating(rating) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = emoji, fontSize = 28.sp)
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // ── Continue button ───────────────────────────────────────────────────
-        Button(
-            onClick = {
-                val rating = state.selectedRating ?: return@Button
-                viewModel.submitFeedback()
-                onContinue(rating)
-            },
-            enabled = state.selectedRating != null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Teal500,
-                disabledContainerColor = Teal200
-            )
-        ) {
-            Text(
-                text = "Continue",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = White
+            // ── Continue button ───────────────────────────────────────────────────
+            Button(
+                onClick = {
+                    val rating = state.selectedRating ?: return@Button
+                    viewModel.submitFeedback()
+                    onContinue(rating)
+                },
+                enabled = state.selectedRating != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Indigo900,
+                    disabledContainerColor = Color.White.copy(alpha = 0.3f),
+                    disabledContentColor = Color.White.copy(alpha = 0.5f)
                 )
-            )
+            ) {
+                Text(
+                    text = "Continue",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
         }
     }
 }
