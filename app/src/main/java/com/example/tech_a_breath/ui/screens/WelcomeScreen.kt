@@ -1,23 +1,23 @@
 package com.example.tech_a_breath.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tech_a_breath.R
 import com.example.tech_a_breath.ui.theme.*
 
 @Composable
@@ -48,38 +48,15 @@ fun WelcomeScreen(
                 .padding(horizontal = 28.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(0.9f))
+            Spacer(modifier = Modifier.weight(1f))
 
-            Box(
+            // Graphical Logo without background and text
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = "Tech a Breath Logo",
                 modifier = Modifier
-                    .size(140.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(Indigo400, Indigo600)
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "🛡️", fontSize = 64.sp)
-            }
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            Text(
-                text = "Welcome to",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Light,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "TECH A BREATH",
-                color = Color.White,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                letterSpacing = 2.sp
+                    .fillMaxWidth(0.85f)
+                    .aspectRatio(1f)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
