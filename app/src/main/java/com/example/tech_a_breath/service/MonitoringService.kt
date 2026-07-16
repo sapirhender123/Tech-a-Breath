@@ -63,16 +63,19 @@ class MonitoringService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        println("Tech-a-Breath: onStartCommand with action: ${intent?.action}")
+        val action = intent?.action
+        println("Tech-a-Breath: onStartCommand with action: $action")
         
-        when (intent?.action) {
-            ACTION_STOP_SERVICE -> {
-                TriggerManager.setProtectionActivated(false)
-                TriggerManager.stopIntervention(force = true)
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
-                return START_NOT_STICKY
-            }
+        if (action == ACTION_STOP_SERVICE) {
+            println("Tech-a-Breath: ACTION_STOP_SERVICE received. Stopping service.")
+            TriggerManager.setProtectionActivated(false)
+            TriggerManager.stopIntervention(force = true)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        when (action) {
             ACTION_STOP_MASKING -> {
                 TriggerManager.stopIntervention(force = true)
             }
@@ -191,17 +194,28 @@ class MonitoringService : Service() {
     }
 
     private fun updateNotificationState(isInterventionActive: Boolean, isForeground: Boolean) {
+        if (!isRunning) return
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notification = createNotification(isInterventionActive, isForeground)
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
     override fun onDestroy() {
+        println("Tech-a-Breath: MonitoringService onDestroy")
         isRunning = false
+        // Cancel the coroutine scope to stop notification updates
+        val job = serviceScope.coroutineContext[Job]
+        job?.cancel()
+        
         audioRecord?.stop()
         audioRecord?.release()
         audioRecord = null
+        
+        // Forcefully remove the notification
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(NOTIFICATION_ID)
         stopForeground(STOP_FOREGROUND_REMOVE)
+
         super.onDestroy()
     }
 
