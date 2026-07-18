@@ -190,13 +190,16 @@ class MonitoringService : Service() {
         val trigger = bestEntry.key
         val count = bestEntry.value
         
-        // Increase thresholds to ensure stability and reduce false positives
+        // Stability threshold to ensure accurate detection
+        // Dog barks are impulsive and short, so we require fewer matches (1/5)
+        // Sirens are continuous and require more stability (3/5)
         val threshold = when (trigger) {
-            TriggerType.SIREN -> 3 // Need 3 out of 5 detections (approx 300ms in 500ms window)
-            TriggerType.DOG_BARK -> 2 // Need 2 out of 5
-            TriggerType.BABY_CRYING -> 2 // Need 2 out of 5
+            TriggerType.SIREN -> 3 
+            TriggerType.DOG_BARK -> 1 
+            TriggerType.BABY_CRYING -> 2
             else -> 2
         }
+
         return if (count >= threshold) trigger else TriggerType.UNKNOWN
     }
 
@@ -284,8 +287,8 @@ class MonitoringService : Service() {
                 .setContentText("Acoustic Shield is currently masking $triggerName.")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "You are safe now.", stopPendingIntent)
-                .addAction(android.R.drawable.ic_menu_recent_history, "1m more", ext1PI)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "I feel safe now", stopPendingIntent)
+                .addAction(android.R.drawable.ic_menu_recent_history, "1min more", ext1PI)
                 .addAction(android.R.drawable.ic_menu_recent_history, "3min more", ext3PI)
                 .addAction(android.R.drawable.ic_menu_recent_history, "5min more", ext5PI)
                 .setFullScreenIntent(pendingIntent, true)

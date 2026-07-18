@@ -50,29 +50,6 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
 
         Scaffold(
             containerColor = Color.Transparent,
-            topBar = {
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 40.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Your Acoustic Shield",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Light,
-                            color = Color.White
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Customize how the world sounds to you.",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.White.copy(alpha = 0.7f),
-                            lineHeight = 24.sp
-                        )
-                    )
-                }
-            },
             bottomBar = {
                 Surface(
                     color = Color.Transparent,
@@ -101,12 +78,35 @@ fun TriggerProtectionSettingsScreen(onStartProtection: () -> Unit) {
                 contentPadding = PaddingValues(
                     start = 24.dp,
                     end = 24.dp,
-                    top = innerPadding.calculateTopPadding(),
+                    top = innerPadding.calculateTopPadding() + 40.dp,
                     bottom = 120.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp)
+                    ) {
+                        Text(
+                            text = "Your Acoustic Shield",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Light,
+                                color = Color.White
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Customize how the world sounds to you.",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = Color.White.copy(alpha = 0.7f),
+                                lineHeight = 24.sp
+                            )
+                        )
+                    }
+                }
                 items(triggers, key = { it.triggerId }) { trigger ->
                     TriggerCard(trigger)
                 }
@@ -206,7 +206,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Masking Level",
+                        text = "Masking Volume",
                         style = MaterialTheme.typography.labelLarge,
                         color = Color.White.copy(alpha = 0.9f)
                     )

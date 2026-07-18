@@ -96,10 +96,11 @@ class AudioClassifierManager(private val context: Context) {
                     else -> null
                 }
 
-                // Increase thresholds to be more certain
+                // Adjusted thresholds: Sirens stay high to avoid ringtone false positives, 
+                // while Dog Barking is lowered to ensure impulsive barks are caught.
                 val minConfidence = when (currentType) {
-                    TriggerType.SIREN -> 0.35f // Increased from 0.20 to avoid false positives like car beeps
-                    TriggerType.DOG_BARK -> 0.35f 
+                    TriggerType.SIREN -> 0.35f 
+                    TriggerType.DOG_BARK -> 0.25f
                     TriggerType.BABY_CRYING -> 0.30f
                     else -> 0.40f
                 }
