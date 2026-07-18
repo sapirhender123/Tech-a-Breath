@@ -42,14 +42,25 @@ class AudioClassifierManager(private val context: Context) {
             // Sort by score to find the real "winner" in the environment
             val topCategories = classification.categories.sortedByDescending { it.score }
             
-            // 1. Check if the absolute top sound is something we should ignore (like a Cat)
+            // 1. Check if the absolute top sound is something we should ignore (like a Cat or Ringtone)
             val absoluteTop = topCategories.firstOrNull()
             if (absoluteTop != null) {
                 val topLabel = absoluteTop.label.lowercase()
+                
+                // Ignore pets
                 if (topLabel.contains("cat") || topLabel.contains("meow") || topLabel.contains("purr")) {
-                    // It's a cat! If cat is the dominant sound, don't trigger dog bark
                     if (absoluteTop.score > 0.30f) {
                         println("Tech-a-Breath AI: Ignoring sound - likely a cat (${absoluteTop.score})")
+                        return TriggerResult(TriggerType.UNKNOWN, 0.0f)
+                    }
+                }
+
+                // Ignore ringtones and phone sounds to avoid false positives (common in car ringtones)
+                if (topLabel.contains("ringtone") || topLabel.contains("telephone") || 
+                    topLabel.contains("phone") || topLabel.contains("chime") ||
+                    topLabel.contains("music") || topLabel.contains("musical")) {
+                    if (absoluteTop.score > 0.40f) {
+                        println("Tech-a-Breath AI: Ignoring sound - likely music/ringtone/phone ($topLabel: ${absoluteTop.score})")
                         return TriggerResult(TriggerType.UNKNOWN, 0.0f)
                     }
                 }
@@ -68,9 +79,11 @@ class AudioClassifierManager(private val context: Context) {
                     label.contains("police") || label.contains("fire engine") || 
                     label.contains("emergency vehicle") -> TriggerType.SIREN
                     
-                    // Siren/Alarm overlap check
+                    // Siren/Alarm overlap check - made more specific to avoid car ringtones
                     (label.contains("alarm") || label.contains("beep") || label.contains("ringing")) && 
-                    !label.contains("smoke") && !label.contains("clock") -> TriggerType.SIREN
+                    !label.contains("smoke") && !label.contains("clock") && 
+                    !label.contains("telephone") && !label.contains("ringtone") && 
+                    !label.contains("phone") && !label.contains("music") && !label.contains("musical") -> TriggerType.SIREN
                     
                     // Dog Barking - refined to avoid Cat overlap
                     (label.contains("barking") || label.contains("howl") || label.contains("bow-wow") || 
@@ -85,9 +98,9 @@ class AudioClassifierManager(private val context: Context) {
 
                 // Increase thresholds to be more certain
                 val minConfidence = when (currentType) {
-                    TriggerType.SIREN -> 0.20f
-                    TriggerType.DOG_BARK -> 0.35f // Increased from 0.20 to avoid false positives
-                    TriggerType.BABY_CRYING -> 0.30f // Increased from 0.25
+                    TriggerType.SIREN -> 0.35f // Increased from 0.20 to avoid false positives like car beeps
+                    TriggerType.DOG_BARK -> 0.35f 
+                    TriggerType.BABY_CRYING -> 0.30f
                     else -> 0.40f
                 }
 
