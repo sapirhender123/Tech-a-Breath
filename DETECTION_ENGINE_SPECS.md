@@ -38,7 +38,7 @@ The system maintains a sliding history of the **last 5 detections** to verify th
 *   **Rhythmic sounds (Baby Crying)**: Requires a **2-out-of-5** match.
 
 ### C. Top-Sound Exclusion
-If the AI identifies **"Music"**, **"Ringtone"**, or **"Telephone"** as the dominant sound in the environment, it will auto-reject any secondary trigger classifications. This is a critical safety layer for users in cars or near electronics.
+If the AI identifies **"Music"**, **"Ringtone"**, **"Telephone"**, or common pets/birds (**"Cat"**, **"Bird"**, **"Parrot"**) as the dominant sound in the environment, it will auto-reject any secondary trigger classifications. This is a critical safety layer for users in cars, near electronics, or in homes with other animals.
 
 ---
 

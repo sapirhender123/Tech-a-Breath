@@ -36,7 +36,7 @@ Environmental sounds are messy. A car horn or a bird chirp can sometimes mimic a
 - **Heuristic**:
     - **Ambulance/Siren**: Requires a **3-out-of-5** match (sustained sound).
     - **Dog Bark**: Requires a **1-out-of-5** match (instant detection for impulsive sounds).
-- **Exclusion Filters**: We implemented a "Top-Sound Exclusion" layer. If the AI identifies "Music" or "Ringtone" as the primary sound, it auto-rejects any secondary "Siren" classifications to prevent false triggers from phones or car radios.
+- **Exclusion Filters**: We implemented a "Top-Sound Exclusion" layer. If the AI identifies "Music", "Ringtone", or common pets like "Cats" and "Birds/Parrots" as the primary sound, it auto-rejects any secondary trigger classifications to prevent false triggers from household environments.
 
 ---
 
