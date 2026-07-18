@@ -47,10 +47,12 @@ class AudioClassifierManager(private val context: Context) {
             if (absoluteTop != null) {
                 val topLabel = absoluteTop.label.lowercase()
                 
-                // Ignore pets
-                if (topLabel.contains("cat") || topLabel.contains("meow") || topLabel.contains("purr")) {
+                // Ignore pets and common animals to avoid false positives
+                if (topLabel.contains("cat") || topLabel.contains("meow") || topLabel.contains("purr") ||
+                    topLabel.contains("bird") || topLabel.contains("parrot") || topLabel.contains("chirp") || 
+                    topLabel.contains("squawk")) {
                     if (absoluteTop.score > 0.30f) {
-                        println("Tech-a-Breath AI: Ignoring sound - likely a cat (${absoluteTop.score})")
+                        println("Tech-a-Breath AI: Ignoring sound - likely an animal/bird ($topLabel: ${absoluteTop.score})")
                         return TriggerResult(TriggerType.UNKNOWN, 0.0f)
                     }
                 }
@@ -85,10 +87,10 @@ class AudioClassifierManager(private val context: Context) {
                     !label.contains("telephone") && !label.contains("ringtone") && 
                     !label.contains("phone") && !label.contains("music") && !label.contains("musical") -> TriggerType.SIREN
                     
-                    // Dog Barking - refined to avoid Cat overlap
+                    // Dog Barking - refined to avoid Cat/Bird overlap
                     (label.contains("barking") || label.contains("howl") || label.contains("bow-wow") || 
                      label.contains("growling") || (label == "dog")) && 
-                    !label.contains("cat") && !label.contains("bird") -> TriggerType.DOG_BARK
+                    !label.contains("cat") && !label.contains("bird") && !label.contains("parrot") -> TriggerType.DOG_BARK
 
                     label.contains("crying") || label.contains("baby") || 
                     label.contains("wail") || label.contains("infant") -> TriggerType.BABY_CRYING
