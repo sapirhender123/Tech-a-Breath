@@ -191,10 +191,12 @@ class MonitoringService : Service() {
         val count = bestEntry.value
         
         // Stability threshold to ensure accurate detection
+        // Dog barks are impulsive and short, so we require fewer matches (1/5)
+        // Sirens are continuous and require more stability (3/5)
         val threshold = when (trigger) {
-            TriggerType.SIREN -> 3 // Need 3 out of 5 detections
-            TriggerType.DOG_BARK -> 2 // Need 2 out of 5
-            TriggerType.BABY_CRYING -> 2 // Need 2 out of 5
+            TriggerType.SIREN -> 3 
+            TriggerType.DOG_BARK -> 1 
+            TriggerType.BABY_CRYING -> 2
             else -> 2
         }
 
