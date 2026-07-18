@@ -1,6 +1,6 @@
 # Tech-a-Breath: AI-Powered Acoustic Shield
 
-Tech-a-Breath is a specialized Android application designed to support individuals with PTSD or sound sensitivities by providing real-time, automated acoustic masking. The app utilizes on-device machine learning to detect specific auditory triggers—such as ambulances, barking dogs, and crying babies—and immediately initiates calming audio interventions to help users maintain emotional regulation.
+Tech-a-Breath is a specialized Android application designed to support individuals with PTSD or sound sensitivities by providing real-time, automated acoustic masking. The app utilizes on-device machine learning to detect specific auditory triggers-such as ambulances, barking dogs, and crying babies-and immediately initiates calming audio interventions to help users maintain emotional regulation.
 
 ## 🚀 Key Features
 
