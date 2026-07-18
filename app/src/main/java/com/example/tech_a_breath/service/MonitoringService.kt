@@ -189,14 +189,23 @@ class MonitoringService : Service() {
         val bestEntry = counts.maxByOrNull { it.value } ?: return TriggerType.UNKNOWN
         val trigger = bestEntry.key
         val count = bestEntry.value
-        val threshold = if (trigger == TriggerType.DOG_BARK) 1 else 2
+        
+        // Increase thresholds to ensure stability and reduce false positives
+        val threshold = when (trigger) {
+            TriggerType.SIREN -> 3 // Need 3 out of 5 detections (approx 300ms in 500ms window)
+            TriggerType.DOG_BARK -> 2 // Need 2 out of 5
+            TriggerType.BABY_CRYING -> 2 // Need 2 out of 5
+            else -> 2
+        }
         return if (count >= threshold) trigger else TriggerType.UNKNOWN
     }
 
     private fun updateNotificationState(isInterventionActive: Boolean, isForeground: Boolean) {
         if (!isRunning) return
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notification = createNotification(isInterventionActive, isForeground)
+        // If intervention is active, use lastConfirmedTrigger to show what was detected
+        val triggerType = if (isInterventionActive) lastConfirmedTrigger else TriggerType.UNKNOWN
+        val notification = createNotification(isInterventionActive, isForeground, triggerType)
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
@@ -227,7 +236,7 @@ class MonitoringService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun createNotification(isInterventionActive: Boolean, silent: Boolean = false): Notification {
+    private fun createNotification(isInterventionActive: Boolean, silent: Boolean = false, triggerType: TriggerType = TriggerType.UNKNOWN): Notification {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -264,14 +273,21 @@ class MonitoringService : Service() {
             val ext5Intent = Intent(this, MonitoringService::class.java).apply { action = ACTION_EXTEND_5M }
             val ext5PI = PendingIntent.getService(this, 4, ext5Intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-            builder.setContentTitle("Protection Active")
-                .setContentText("Acoustic Shield is currently masking a trigger.")
+            val triggerName = when(triggerType) {
+                TriggerType.SIREN -> "Ambulance"
+                TriggerType.DOG_BARK -> "Dog Barking"
+                TriggerType.BABY_CRYING -> "Baby Crying"
+                else -> "Sound"
+            }
+
+            builder.setContentTitle("Protection Active: $triggerName")
+                .setContentText("Acoustic Shield is currently masking $triggerName.")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel, "You are safe now.", stopPendingIntent)
-                .addAction(android.R.drawable.ic_menu_recent_history, "1m", ext1PI)
-                .addAction(android.R.drawable.ic_menu_recent_history, "3m", ext3PI)
-                .addAction(android.R.drawable.ic_menu_recent_history, "5m", ext5PI)
+                .addAction(android.R.drawable.ic_menu_recent_history, "1m more", ext1PI)
+                .addAction(android.R.drawable.ic_menu_recent_history, "3min more", ext3PI)
+                .addAction(android.R.drawable.ic_menu_recent_history, "5min more", ext5PI)
                 .setFullScreenIntent(pendingIntent, true)
         } else {
             builder.setContentTitle("Shield Active")
