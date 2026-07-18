@@ -13,7 +13,12 @@ Tech-a-Breath is a specialized Android application designed to support individua
 
 ## 🏗️ Architecture
 
-The app follows a modern Android architectural approach (MVVM) and a specialized **Dual-Stage Monitoring** engine:
+The app follows a modern Android architectural approach (**MVVM**) and a specialized **Dual-Stage Monitoring** engine to ensure separation of concerns and system stability:
+
+### Model-View-ViewModel (MVVM) Implementation
+- **Model**: Represents the data and business logic layer. In Tech-a-Breath, this includes the **Room Database** for persistence and the **TensorFlow Lite** classification engine for real-time audio analysis.
+- **ViewModel**: Acts as the bridge between the data and the UI. Managed primarily through the `TriggerManager`, this layer maintains the application state using **Kotlin StateFlow**, ensuring that monitoring and masking logic remain consistent throughout the application lifecycle.
+- **View**: Built with **Jetpack Compose**, the UI is declarative and reactive. It observes state changes from the ViewModel and updates the interface instantly when triggers are detected or settings are modified.
 
 ### 1. The "Sentinel" (Low-Power Monitoring)
 To optimize battery life, the app doesn't run the AI model constantly. Instead, a lightweight "Sentinel" phase monitors raw audio volume (RMS to dB conversion). The AI classifier only wakes up when the environment exceeds a specific volume threshold.
