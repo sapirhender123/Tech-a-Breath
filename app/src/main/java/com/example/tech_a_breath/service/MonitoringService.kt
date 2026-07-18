@@ -190,13 +190,14 @@ class MonitoringService : Service() {
         val trigger = bestEntry.key
         val count = bestEntry.value
         
-        // Increase thresholds to ensure stability and reduce false positives
+        // Stability threshold to ensure accurate detection
         val threshold = when (trigger) {
-            TriggerType.SIREN -> 3 // Need 3 out of 5 detections (approx 300ms in 500ms window)
+            TriggerType.SIREN -> 3 // Need 3 out of 5 detections
             TriggerType.DOG_BARK -> 2 // Need 2 out of 5
             TriggerType.BABY_CRYING -> 2 // Need 2 out of 5
             else -> 2
         }
+
         return if (count >= threshold) trigger else TriggerType.UNKNOWN
     }
 

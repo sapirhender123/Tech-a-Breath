@@ -206,7 +206,7 @@ fun TriggerCard(trigger: TriggerSettingData) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Masking Level",
+                        text = "Masking Volume",
                         style = MaterialTheme.typography.labelLarge,
                         color = Color.White.copy(alpha = 0.9f)
                     )

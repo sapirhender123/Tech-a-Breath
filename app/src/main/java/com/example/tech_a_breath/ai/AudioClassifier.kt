@@ -1,6 +1,7 @@
 package com.example.tech_a_breath.ai
 
 import android.content.Context
+import com.example.tech_a_breath.TriggerManager
 import org.tensorflow.lite.task.audio.classifier.AudioClassifier
 import org.tensorflow.lite.task.core.BaseOptions
 
@@ -96,9 +97,9 @@ class AudioClassifierManager(private val context: Context) {
                     else -> null
                 }
 
-                // Increase thresholds to be more certain
+                // Increase thresholds to be more certain and avoid false positives
                 val minConfidence = when (currentType) {
-                    TriggerType.SIREN -> 0.35f // Increased from 0.20 to avoid false positives like car beeps
+                    TriggerType.SIREN -> 0.35f 
                     TriggerType.DOG_BARK -> 0.35f 
                     TriggerType.BABY_CRYING -> 0.30f
                     else -> 0.40f
