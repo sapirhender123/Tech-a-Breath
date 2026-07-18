@@ -276,8 +276,14 @@ fun InterventionContent(mode: InterventionMode) {
 
         when (mode) {
             is InterventionMode.Masking -> {
-                primaryText = "Masking sound active"
-                secondaryText = "You are in a safe space"
+                val triggerDisplayName = when (mode.triggerType) {
+                    TriggerType.SIREN -> "Ambulance"
+                    TriggerType.DOG_BARK -> "Dog Barking"
+                    TriggerType.BABY_CRYING -> "Baby Crying"
+                    else -> mode.triggerName
+                }
+                primaryText = "Acoustic Shield Active"
+                secondaryText = "Masking $triggerDisplayName"
             }
             InterventionMode.PhoneCall -> {
                 primaryText = stringResource(R.string.silent_support)

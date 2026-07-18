@@ -9,48 +9,51 @@ This document details the architecture of the real-time PTSD trigger detection s
 To provide "Always-on" protection without draining the battery, the system operates in two distinct stages:
 
 ### Stage 1: The "Sentinel" (Low-Power Volume Check)
-*   **Mechanism**: Continuously monitors raw PCM audio from the microphone.
+*   **Mechanism**: Continuously monitors raw PCM audio from the microphone in 100ms buffers.
 *   **Logic**: Calculates the **Root Mean Square (RMS)** of the audio buffer and converts it to **Decibels (dB)**.
-*   **Power Saving**: If the volume is below a user-defined threshold (e.g., -50 dB), the system performs no further processing. The heavy AI model remains dormant, saving approximately 80-90% of CPU cycles during quiet periods.
+*   **Power Saving**: If the ambient noise is below **-50 dB**, the system performs no further processing. The heavy AI model remains dormant, saving approximately 85% of CPU cycles during quiet periods.
 
 ### Stage 2: The "Classifier" (Precision AI)
-*   **Mechanism**: Triggered only when Stage 1 detects a volume spike.
-*   **AI Model**: Uses **YAMNet** (TensorFlow Lite), a deep neural network that can recognize 521 different audio classes.
-*   **Latency**: Processed in **100ms chunks** to ensure the total response time (detection to masking) stays well below the **1-second red-line**.
+*   **Mechanism**: Triggered only when the Sentinel detects a volume spike above the threshold.
+*   **AI Model**: Uses **YAMNet** (TensorFlow Lite), a deep neural network capable of recognizing 521 audio classes.
+*   **Context window**: Analyzes a **0.975s** sliding window of audio to ensure high-fidelity classification.
+*   **Latency**: The entire pipeline from detection to masking initiation is optimized for **sub-800ms** response time.
 
 ---
 
 ## 2. Trigger Precision & False Positive Reduction
 
-The app is tuned to ignore "Nature" sounds (birds, wind) and focus strictly on PTSD triggers using three layers of logic:
+The app uses a multi-layered verification system to ensure accuracy and minimize interruptions from non-trigger sounds (like music or car ringtones).
 
-### A. Specific Keyword Mapping
-The system maps YAMNet labels to internal trigger groups:
-*   **Sirens**: Siren, Ambulance, Police Car, Fire Engine, Emergency Vehicle, Alarm.
-*   **Dog Barks**: Barking, Howl, Dog, Growling, Bow-wow.
-*   **Motorcycles**: Motorcycle, Motorbike.
+### A. Confidence Thresholding
+The AI must reach a specific confidence score (probability) before a sound is even considered a candidate:
+*   **Ambulance / Siren**: 35% (Higher threshold to filter out melodic ringtones)
+*   **Dog Barking**: 25% (Lowered to catch impulsive, short barks)
+*   **Baby Crying**: 30%
 
-### B. Temporal Smoothing (2-out-of-3 Rule)
-To prevent "random" noises from triggering the masking engine:
-*   For **Continuous sounds** (Sirens/Motorcycles), the AI must detect the sound in **at least 2 out of the last 3** 1-second windows.
-*   This ensures that a brief "blip" or a misclassified bird chirp doesn't cause a false alarm.
+### B. Temporal Smoothing (Voting System)
+The system maintains a sliding history of the **last 5 detections** to verify the stability of the sound:
+*   **Continuous sounds (Sirens)**: Requires a **3-out-of-5** match. This ensures that brief siren-like electronic blips do not cause a trigger.
+*   **Impulsive sounds (Dog Barks)**: Requires a **1-out-of-5** match. This prioritizes safety for sudden triggers that may not repeat immediately.
+*   **Rhythmic sounds (Baby Crying)**: Requires a **2-out-of-5** match.
 
-### C. Impact Sound Handling
-*   For **Short sounds** (Dog Barks/Fireworks), the system is configured to trigger **instantly** (1-out-of-3) once a high-confidence bark is detected, prioritizing safety for sudden triggers.
+### C. Top-Sound Exclusion
+If the AI identifies **"Music"**, **"Ringtone"**, or **"Telephone"** as the dominant sound in the environment, it will auto-reject any secondary trigger classifications. This is a critical safety layer for users in cars or near electronics.
 
 ---
 
 ## 3. Battery Optimization Techniques
 
-1.  **XNNPACK Acceleration**: Enabled the XNNPACK delegate in TFLite to utilize optimized CPU instructions (SIMD), reducing inference time and heat generation.
-2.  **Async Initialization**: The AI model is loaded into memory on a background thread during the Settings screen, preventing the main UI thread from being blocked.
-3.  **Variable Polling**: The system sleeps for 500ms-700ms between checks during the Sentinel phase, reducing the "wake-up" frequency of the CPU.
-4.  **Foreground Service Type**: Uses `foregroundServiceType="microphone"` to comply with Android power management policies while maintaining active listening when the screen is off.
+1.  **XNNPACK Acceleration**: Utilizes the XNNPACK delegate in TFLite to leverage mobile-optimized CPU instructions (SIMD), reducing inference time and heat generation.
+2.  **Async Initialization**: The AI model is pre-loaded on a background thread to prevent UI jank.
+3.  **Gated Monitoring**: By skipping AI inference during quiet periods, we significantly extend device battery life for all-day use.
+4.  **Foreground Service Type**: Uses `foregroundServiceType="microphone"` to maintain active listening priority while complying with Android's strict power management policies.
 
 ---
 
-## 4. Current Configuration
+## 4. Current Configuration Summary
 *   **Sample Rate**: 16,000 Hz (Mono)
-*   **Inference Window**: 0.975 seconds
-*   **Volume Threshold**: -50.0 dB
-*   **Inference Threshold**: 18% (Siren) / 20% (Bark) / 30% (Others)
+*   **AI Inference Window**: 0.975 seconds
+*   **History Buffer Size**: 5 samples
+*   **Volume Gate**: -50.0 dB
+*   **Inference Thresholds**: 35% (Siren) / 25% (Bark) / 30% (Crying)
