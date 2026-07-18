@@ -39,10 +39,10 @@ Once a trigger is confirmed via **Temporal Smoothing** (ensuring the sound is st
 
 ## 💡 Key Design Decisions
 
-- **Temporal Smoothing (2-out-of-5 Logic)**: We implemented a history-based voting system for detections. For a siren to trigger an intervention, it must be detected in multiple consecutive windows. This drastically reduces false positives from car ringtones or electronic jingles.
+- **Temporal Smoothing**: We implemented a per-trigger voting system for detections. Continuous sounds like sirens require multiple detections (3-out-of-5) to filter out false positives, while sudden sounds like dog barks are configured for near-instant response (1-out-of-5).
 - **Foreground Service with High Priority**: The monitoring runs as a `Foreground Service` with `microphone` usage types to ensure the Android OS doesn't kill the process during critical moments of protection.
 - **Non-Invasive UI**: The intervention UI is designed with a calming color palette (Slate & Indigo) and soft transitions to avoid overstimulating the user during a trigger event.
-- **Lock-Screen Controls**: Quick-action buttons in the notification (e.g., "1m more", "You are safe now") allow users to extend or stop protection without unlocking their phone.
+- **Lock-Screen Controls**: Quick-action buttons in the notification (e.g., "1min more", "I feel safe now") allow users to extend or stop protection without unlocking their phone.
 
 ## 🌟 Advantages
 

@@ -35,7 +35,7 @@ Environmental sounds are messy. A car horn or a bird chirp can sometimes mimic a
 - **The Solution**: The `MonitoringService` maintains a sliding history window (last 5 detections).
 - **Heuristic**:
     - **Ambulance/Siren**: Requires a **3-out-of-5** match (sustained sound).
-    - **Dog Bark**: Requires a **2-out-of-5** match (sudden/impact sound).
+    - **Dog Bark**: Requires a **1-out-of-5** match (instant detection for impulsive sounds).
 - **Exclusion Filters**: We implemented a "Top-Sound Exclusion" layer. If the AI identifies "Music" or "Ringtone" as the primary sound, it auto-rejects any secondary "Siren" classifications to prevent false triggers from phones or car radios.
 
 ---
@@ -58,7 +58,7 @@ The core of the app runs as a `Foreground Service`. This ensures the Android OS 
 
 ### 🛡️ Notification Interventions
 When protection is active, the app creates a "High Importance" notification. 
-- **User Agency**: Buttons like **"You are safe now"** (stops masking) and **"1m more"** (extends masking duration) are available directly on the lock screen.
+- **User Agency**: Buttons like **"I feel safe now"** (stops masking) and **"1min more"** (extends masking duration) are available directly on the lock screen.
 - **Reassurance**: The notification explicitly states what was detected (e.g., "Protection Active: Ambulance") to ground the user.
 
 ### 📊 Room-Based History & Analytics
