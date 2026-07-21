@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.example.tech_a_breath.service.MonitoringService
+import com.example.tech_a_breath.ui.WelcomeScreen
 import com.example.tech_a_breath.ui.InterventionScreen
 import com.example.tech_a_breath.ui.ListeningScreen
 import com.example.tech_a_breath.ui.TriggerProtectionSettingsScreen
@@ -63,12 +64,17 @@ class MainActivity : ComponentActivity() {
                 val isProtectionActivated by TriggerManager.isProtectionActivated.collectAsState()
                 
                 var currentScreen by remember { 
-                    mutableStateOf(if (isProtectionActivated) "monitoring" else "settings") 
+                    mutableStateOf(if (isProtectionActivated) "monitoring" else "welcome") 
                 }
                 
                 // Keep currentScreen in sync with the global protection state
                 LaunchedEffect(isProtectionActivated) {
-                    currentScreen = if (isProtectionActivated) "monitoring" else "settings"
+                    if (isProtectionActivated) {
+                        currentScreen = "monitoring"
+                    } else if (currentScreen != "welcome") {
+                        currentScreen = "settings"
+                    }
+                    
                     if (!isProtectionActivated) {
                         isServiceStarted = false
                     }
@@ -85,21 +91,27 @@ class MainActivity : ComponentActivity() {
                             mode = activeIntervention!!,
                             onStop = { TriggerManager.stopIntervention(force = true) }
                         )
-                    } else if (currentScreen == "settings") {
-                        TriggerProtectionSettingsScreen(onStartProtection = {
-                            TriggerManager.setProtectionActivated(true)
-                            checkPermissionsAndStart()
-                        })
                     } else {
-                        ListeningScreen(
-                            onOpenSettings = {
-                                TriggerManager.setProtectionActivated(false)
-                            },
-                            onStopShield = {
-                                TriggerManager.setProtectionActivated(false)
-                                stopMonitoringService()
-                            }
-                        )
+                        when (currentScreen) {
+                            "welcome" -> WelcomeScreen(onGetStarted = {
+                                currentScreen = "settings"
+                            })
+                            "settings" -> TriggerProtectionSettingsScreen(onStartProtection = {
+                                TriggerManager.setProtectionActivated(true)
+                                checkPermissionsAndStart()
+                            })
+                            else -> ListeningScreen(
+                                onOpenSettings = {
+                                    TriggerManager.setProtectionActivated(false)
+                                    currentScreen = "settings"
+                                },
+                                onStopShield = {
+                                    TriggerManager.setProtectionActivated(false)
+                                    stopMonitoringService()
+                                    currentScreen = "welcome"
+                                }
+                            )
+                        }
                     }
                 }
             }
